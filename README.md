@@ -1,12 +1,12 @@
-# Cafe Agent Skill
+# CoreClaw Agent Skill
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-A reusable Cafe workflow definition for AI coding agents.
+A reusable CoreClaw workflow definition for AI coding agents.
 
 ## Overview
 
-Cafe provides scraper discovery and execution through its REST API. This repository packages the standard Cafe workflow in a skill-oriented format built around `SKILL.md` and `openapi.json`.
+CoreClaw provides scraper discovery and execution through its REST API. This repository packages the standard CoreClaw workflow in a skill-oriented format built around `SKILL.md` and `openapi.json`.
 
 It is intended for AI agent environments, including:
 
@@ -16,7 +16,7 @@ It is intended for AI agent environments, including:
 
 The repository covers the operational flow required to:
 
-- find the right scraper in Cafe Store
+- find the right scraper in CoreClaw Store
 - read scraper metadata, version, and input schema
 - launch asynchronous scraper runs
 - monitor run status safely
@@ -30,14 +30,14 @@ The repository covers the operational flow required to:
 .
 ├── README.md      # GitHub-facing project documentation
 ├── SKILL.md       # The skill definition, workflow, and operational instructions
-└── openapi.json   # Cafe OpenAPI spec used as the API reference
+└── openapi.json   # CoreClaw OpenAPI spec used as the API reference
 ```
 
 ## Current Capability
 
-The skill currently covers the main Cafe API workflow:
+The skill currently covers the main CoreClaw API workflow:
 
-- search Cafe Store for available scrapers
+- search CoreClaw Store for available scrapers
 - get scraper details, parameter schema, and README content
 - start scraper runs
 - poll run status with guardrails
@@ -56,7 +56,7 @@ This repository is not an SDK. It is a workflow package centered on `SKILL.md`.
 
 - `SKILL.md` defines when the skill should trigger and how the agent should operate
 - `openapi.json` provides the complete API-level reference
-- the agent follows the documented Cafe workflow step by step once the skill is triggered
+- the agent follows the documented CoreClaw workflow step by step once the skill is triggered
 
 At a high level, the workflow is:
 
@@ -81,13 +81,13 @@ Before using this skill, make sure you have:
 
 - `curl`
 - `jq`
-- a valid `CAFE_API_KEY`
-- network access to `https://openapi.cafescraper.com`
+- a valid `CORECLAW_API_KEY`
+- network access to `https://openapi.coreclaw.com`
 
 Set your API key:
 
 ```bash
-export CAFE_API_KEY="your_api_key"
+export CORECLAW_API_KEY="your_api_key"
 ```
 
 ## Installation
@@ -97,7 +97,7 @@ For environments that support skill directories, place this repository according
 For example, in Codex-style setups:
 
 ```bash
-~/.codex/skills/cafe
+~/.codex/skills/coreclaw
 ```
 
 The required entry file is:
@@ -112,12 +112,12 @@ Restart your agent environment after installation so the skill is loaded.
 
 These are examples of requests that fit this workflow:
 
-- "Find a Cafe scraper for Amazon product listings."
+- "Find a CoreClaw scraper for Amazon product listings."
 - "Read the scraper parameters and start a run for me."
 - "Keep polling this `run_slug` and show me the first 20 results when it finishes."
 - "Export this run's results as CSV."
 - "Check why this run failed and extract the error logs."
-- "Show my current Cafe account balance and traffic usage."
+- "Show my current CoreClaw account balance and traffic usage."
 
 ## Design Decisions
 
@@ -145,15 +145,15 @@ Use export when:
 
 ## Notes
 
-- most endpoints require `CAFE_API_KEY`
+- most endpoints require `CORECLAW_API_KEY`
 - the run endpoints require a `callback_url`; the skill currently documents a test callback
 - large result sets should usually be exported instead of injected directly into the model context
 - polling logic should sanitize malformed control characters before passing JSON into `jq`
 
 ## References
 
-- Cafe Store: https://cafescraper.com
-- Cafe OpenAPI spec: `openapi.json`
+- CoreClaw Store: https://coreclaw.com/store
+- CoreClaw OpenAPI spec: `openapi.json`
 - Skill entry point: `SKILL.md`
 
 ## License
@@ -162,4 +162,4 @@ This project is released under the MIT License. See `LICENSE` for details.
 
 ---
 
-This repository provides a structured starting point for integrating Cafe scraping workflows into AI agent environments.
+This repository provides a structured starting point for integrating CoreClaw scraping workflows into AI agent environments.

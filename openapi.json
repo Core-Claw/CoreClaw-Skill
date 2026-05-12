@@ -98,7 +98,7 @@
                           "items": {
                             "type": "object",
                             "properties": {
-                              "__cafe_data_id__": {
+                              "__coreclaw_data_id__": {
                                 "type": "string"
                               },
                               "title": {
@@ -112,7 +112,7 @@
                               }
                             },
                             "required": [
-                              "__cafe_data_id__",
+                              "__coreclaw_data_id__",
                               "title",
                               "publish_time",
                               "category"
@@ -161,25 +161,25 @@
                         ],
                         "list": [
                           {
-                            "__cafe_data_id__": "a06dd7cb94e58117c0d2b84f1d2b2491b981c405645dcd09f6f350f54c841846",
+                            "__coreclaw_data_id__": "a06dd7cb94e58117c0d2b84f1d2b2491b981c405645dcd09f6f350f54c841846",
                             "title": "太平洋彼岸传佳音，美国中国总商会授予圣奥重磅大奖",
                             "publish_time": "2026-01-19",
                             "category": "品牌荣耀"
                           },
                           {
-                            "__cafe_data_id__": "23eeecb761aadf8a3eee5937831b53b5042cecc715a1a200533ba3f4cefc5852",
+                            "__coreclaw_data_id__": "23eeecb761aadf8a3eee5937831b53b5042cecc715a1a200533ba3f4cefc5852",
                             "title": "中国家具行业企业信用等级评价公布，圣奥荣获AAA信用等级",
                             "publish_time": "2026-01-06",
                             "category": "品牌荣耀"
                           },
                           {
-                            "__cafe_data_id__": "020134dd55804a82d9b8a3cfe968253fb990c5ec2a4584be42f80e2d9dc9e03a",
+                            "__coreclaw_data_id__": "020134dd55804a82d9b8a3cfe968253fb990c5ec2a4584be42f80e2d9dc9e03a",
                             "title": "双奖加冕！圣奥两款”拳头”产品闪耀2025红棉奖，以设计赋能办公生活",
                             "publish_time": "2025-12-29",
                             "category": "品牌荣耀"
                           },
                           {
-                            "__cafe_data_id__": "d2481a857acd915209c5da820642a69793aa5f9dfb3504d550f3542492b3e668",
+                            "__coreclaw_data_id__": "d2481a857acd915209c5da820642a69793aa5f9dfb3504d550f3542492b3e668",
                             "title": "圣奥与国际知名设计工作室Favaretto/Partners确立深度合作",
                             "publish_time": "2025-12-17",
                             "category": "企业动态"
@@ -488,7 +488,7 @@
                   "callback_url": {
                     "type": "string",
                     "description": "通知地址",
-                    "default": "https://openapi.cafescraper.com/api//v1/test/callback"
+                    "default": "https://your-callback.example.com/webhook"
                   }
                 },
                 "required": [
@@ -498,7 +498,7 @@
                   "callback_url"
                 ]
               },
-              "example": "{\r\n  \"scraper_slug\": \"01KGYERXPXTABWXMGQKFCE43M2\", // 脚本唯一标识\r\n  \"version\": \"v1.0.1\", // 脚本版本号\r\n  \"input\": {\r\n    \"parameters\": {\r\n      \"system\": { // 系统参数\r\n        \"cpus\": 0.125, // 设备CPU 核心数\r\n        \"memory\": 512, // 设备内存\r\n        \"execute_limit_time_seconds\": 1800, // 脚本超时时间\r\n        \"max_total_charge\": 0, // 运行消耗最大金额\r\n        \"max_total_traffic\": 0, // 运行消耗最大流量\r\n        \"proxy_region\": \"BQ\" // 执行节点（代理）\r\n      },\r\n      \"custom\": { // 脚本参数\r\n        \"startURLs\": [\r\n          {\r\n            \"url\": \"https://www.amazon.com/sp?ie=UTF8&seller=ADZ7LD48GVFQJ&asin=B07H56J7K1&ref_=dp_merchant_link&isAmazonFulfilled=1\"\r\n          },\r\n          {\r\n            \"url\": \"https://www.amazon.com/sp?ie=UTF8&seller=A3AZYNALJBV2WE&asin=B099S46ZRQ&ref_=dp_merchant_link&isAmazonFulfilled=1\"\r\n          }\r\n        ]\r\n      }\r\n    }\r\n  },\r\n  \"callback_url\": \"https://openapi.cafescraper.com/api//v1/test/callback\" // 回调地址\r\n}"
+              "example": "{\r\n  \"scraper_slug\": \"01KGYERXPXTABWXMGQKFCE43M2\", // 脚本唯一标识\r\n  \"version\": \"v1.0.1\", // 脚本版本号\r\n  \"input\": {\r\n    \"parameters\": {\r\n      \"system\": { // 系统参数\r\n        \"cpus\": 0.125, // 设备CPU 核心数\r\n        \"memory\": 512, // 设备内存\r\n        \"execute_limit_time_seconds\": 1800, // 脚本超时时间\r\n        \"max_total_charge\": 0, // 运行消耗最大金额\r\n        \"max_total_traffic\": 0, // 运行消耗最大流量\r\n        \"proxy_region\": \"BQ\" // 执行节点（代理）\r\n      },\r\n      \"custom\": { // 脚本参数\r\n        \"startURLs\": [\r\n          {\r\n            \"url\": \"https://www.amazon.com/sp?ie=UTF8&seller=ADZ7LD48GVFQJ&asin=B07H56J7K1&ref_=dp_merchant_link&isAmazonFulfilled=1\"\r\n          },\r\n          {\r\n            \"url\": \"https://www.amazon.com/sp?ie=UTF8&seller=A3AZYNALJBV2WE&asin=B099S46ZRQ&ref_=dp_merchant_link&isAmazonFulfilled=1\"\r\n          }\r\n        ]\r\n      }\r\n    }\r\n  },\r\n  \"callback_url\": \"https://your-callback.example.com/webhook\" // 回调地址\r\n}"
             }
           }
         },
@@ -588,7 +588,7 @@
                   "callback_url": {
                     "type": "string",
                     "description": "通知地址",
-                    "default": "https://openapi.cafescraper.com/api//v1/test/callback"
+                    "default": "https://your-callback.example.com/webhook"
                   }
                 },
                 "required": [
@@ -598,7 +598,7 @@
               },
               "example": {
                 "run_slug": "01KJYCSVTDCM7078HNB4Z5RJE2",
-                "callback_url": "https://openapi.cafescraper.com/api//v1/test/callback"
+                "callback_url": "https://your-callback.example.com/webhook"
               }
             }
           }
@@ -814,7 +814,7 @@
                   "callback_url": {
                     "type": "string",
                     "description": "通知地址",
-                    "default": "https://openapi.cafescraper.com/api//v1/test/callback"
+                    "default": "https://your-callback.example.com/webhook"
                   }
                 },
                 "required": [
@@ -824,7 +824,7 @@
               },
               "example": {
                 "task_slug": "01KK0G4W9W4JYTWEA55KMG5QKP",
-                "callback_url": "https://openapi.cafescraper.com/api//v1/test/callback"
+                "callback_url": "https://your-callback.example.com/webhook"
               }
             }
           }
@@ -1491,7 +1491,7 @@
                   "code": 0,
                   "message": "success",
                   "data": {
-                    "all_logs_url": "https://file.cafescraper.com/log/all_log_<uuid>_<timestamp>",
+                    "all_logs_url": "https://smpfile.coreclaw.com/log/all_log_<uuid>_<timestamp>",
                     "list": [
                       {
                         "type": 2,
@@ -1937,10 +1937,10 @@
                                 "description": "Does the collected content include images"
                               }
                             ],
-                            "description": "Choose your starting point: hashtags #️⃣, profiles 😎, search results 🔍 or specific tiktoks 🔗. To try the scraper, just add a hashtag, then indicate how many tiktoks you want extracted in the <strong>💯 Number of videos</strong> and hit the <strong>▷ Start</strong> button. Here’s a <a href='https://www.cafehook.com/' target='_blank' rel='noopener'>tutorial to help</a>."
+                            "description": "Choose your starting point: hashtags #️⃣, profiles 😎, search results 🔍 or specific tiktoks 🔗. To try the scraper, just add a hashtag, then indicate how many tiktoks you want extracted in the <strong>💯 Number of videos</strong> and hit the <strong>▷ Start</strong> button. Here’s a <a href='https://coreclaw.com/store' target='_blank' rel='noopener'>tutorial to help</a>."
                           }
                         },
-                        "readme": "- Hello\n- Cafe\n- 测试修改"
+                        "readme": "- Hello\n- CoreClaw\n- 测试修改"
                       }
                     }
                   },
@@ -2065,28 +2065,28 @@
                           },
                           {
                             "slug": "01K7KA8YJD468C08587MG8MSHH",
-                            "title": "Cafehook",
-                            "description": "cafehook"
+                            "title": "Demo Worker",
+                            "description": "Demo worker"
                           },
                           {
                             "slug": "01K7ZW3B4YCB648J8MP0JBQXF9",
-                            "title": "cafehook v2",
+                            "title": "Demo Worker v2",
                             "description": "test"
                           },
                           {
                             "slug": "01K82BXKGE2NTGK0V36W47N85S",
-                            "title": "cafehook v3",
+                            "title": "Demo Worker v3",
                             "description": "sdf"
                           },
                           {
                             "slug": "01K85MK64YK92RP44DG7BPXK5H",
-                            "title": "cafehook ",
+                            "title": "Demo Worker",
                             "description": "sdf"
                           },
                           {
                             "slug": "01K8HXAQRSYXMB19RT11BZDHEX",
-                            "title": "CafeHook v3 并发版",
-                            "description": "CafeHook v3 并发版"
+                            "title": "Demo Worker Concurrency Edition",
+                            "description": "Demo Worker Concurrency Edition"
                           },
                           {
                             "slug": "01KBMC414P061HAR6GARQ01AZS",
@@ -2620,7 +2620,7 @@
   },
   "servers": [
     {
-      "url": "https://openapi.cafescraper.com",
+      "url": "https://openapi.coreclaw.com",
       "description": "正式环境"
     }
   ],

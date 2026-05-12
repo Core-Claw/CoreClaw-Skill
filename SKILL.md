@@ -1,33 +1,33 @@
 ---
-name: cafe
-description: Run Cafe scrapers and retrieve structured results using the Cafe REST API with curl. Use when the user wants to scrape websites, collect data from supported platforms, run a Cafe scraper, monitor runs, fetch results, export data, or debug a failed run.
-homepage: https://cafescraper.com
+name: coreclaw
+description: Run CoreClaw scrapers and retrieve structured results using the CoreClaw REST API with curl. Use when the user wants to scrape websites, collect data from supported platforms, run a CoreClaw scraper, monitor runs, fetch results, export data, or debug a failed run.
+homepage: https://coreclaw.com
 metadata:
   openclaw:
-    primaryEnv: CAFE_API_KEY
+    primaryEnv: CORECLAW_API_KEY
     requires:
       bins:
         - curl
         - jq
       env:
-        - CAFE_API_KEY
+        - CORECLAW_API_KEY
 ---
 
-# Cafe
+# CoreClaw
 
-Run scrapers on [Cafe Store](https://cafescraper.com) and retrieve structured results via the REST API.
+Run scrapers on [CoreClaw Store](https://coreclaw.com/store) and retrieve structured results via the REST API.
 
 Full OpenAPI spec: [openapi.json](openapi.json)
 
 ## Authentication
 
-Most endpoints need the `CAFE_API_KEY` env var. Use it as an `api-key` header:
+Most endpoints need the `CORECLAW_API_KEY` env var. Use it as an `api-key` header:
 
 ```bash
--H "api-key: $CAFE_API_KEY"
+-H "api-key: $CORECLAW_API_KEY"
 ```
 
-Base URL: `https://openapi.cafescraper.com`
+Base URL: `https://openapi.coreclaw.com`
 
 **Public endpoints** (no API key needed): `/api/store` (search scrapers), `/api/scraper` (scraper detail).
 
@@ -35,10 +35,10 @@ Base URL: `https://openapi.cafescraper.com`
 
 ### 1. Find the right scraper
 
-Search the Cafe Store by keyword:
+Search the CoreClaw Store by keyword:
 
 ```bash
-curl -s "https://openapi.cafescraper.com/api/store?search=amazon&limit=5" | jq '.data.scraper[] | {slug, title, description}'
+curl -s "https://openapi.coreclaw.com/api/store?search=amazon&limit=5" | jq '.data.scraper[] | {slug, title, description}'
 ```
 
 Response returns `data.scraper[]` with `slug`, `title`, `description` for each match.
@@ -51,7 +51,7 @@ Response returns `data.scraper[]` with `slug`, `title`, `description` for each m
 Before running a scraper, fetch its parameter schema and README:
 
 ```bash
-curl -s "https://openapi.cafescraper.com/api/scraper?slug=SCRAPER_SLUG" | jq '.data | {version, parameters, readme}'
+curl -s "https://openapi.coreclaw.com/api/scraper?slug=SCRAPER_SLUG" | jq '.data | {version, parameters, readme}'
 ```
 
 The response includes:
@@ -70,8 +70,8 @@ Start a scraper and get the `run_slug` back immediately. **`version`, `system`, 
 - `custom` → read `data.parameters.custom.properties[]` to see each scraper's specific input fields, then fill in accordingly
 
 ```bash
-curl -s -X POST "https://openapi.cafescraper.com/api/v1/scraper/run" \
-  -H "api-key: $CAFE_API_KEY" \
+curl -s -X POST "https://openapi.coreclaw.com/api/v1/scraper/run" \
+  -H "api-key: $CORECLAW_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "scraper_slug": "SCRAPER_SLUG",
@@ -90,7 +90,7 @@ curl -s -X POST "https://openapi.cafescraper.com/api/v1/scraper/run" \
         }
       }
     },
-    "callback_url": "https://openapi.cafescraper.com/api//v1/test/callback"
+    "callback_url": "https://your-callback.example.com/webhook"
   }'
 ```
 
@@ -98,7 +98,7 @@ Response: `{"code": 0, "message": "success", "data": {"run_slug": "01KKDXV2G26BT
 
 Save the `run_slug` — you need it for all subsequent operations.
 
-**Important**: `callback_url` is required. Use `"https://openapi.cafescraper.com/api//v1/test/callback"` as a test callback when you don't need a real callback endpoint.
+**Important**: `callback_url` is required. Use a valid callback endpoint such as `"https://your-callback.example.com/webhook"` when you need async notifications.
 
 ### 4. Poll run status
 
@@ -107,8 +107,8 @@ Check run status until it reaches a terminal state. **Always use the robust poll
 ```bash
 CONSECUTIVE_ERRORS=0
 while true; do
-  RESP=$(curl -s -X POST "https://openapi.cafescraper.com/api/v1/run/detail" \
-    -H "api-key: $CAFE_API_KEY" \
+  RESP=$(curl -s -X POST "https://openapi.coreclaw.com/api/v1/run/detail" \
+    -H "api-key: $CORECLAW_API_KEY" \
     -H "Content-Type: application/json" \
     -d '{"run_slug": "RUN_SLUG"}')
   # Sanitize control characters before passing to jq
@@ -165,8 +165,8 @@ There are **two ways** to retrieve results. Choose based on the scenario:
 **Option A: Paginated inline data (`result/list`)** — preferred for AI analysis
 
 ```bash
-curl -s -X POST "https://openapi.cafescraper.com/api/v1/run/result/list" \
-  -H "api-key: $CAFE_API_KEY" \
+curl -s -X POST "https://openapi.coreclaw.com/api/v1/run/result/list" \
+  -H "api-key: $CORECLAW_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"run_slug": "RUN_SLUG", "page": 1, "page_size": 20}'
 ```
@@ -174,15 +174,15 @@ curl -s -X POST "https://openapi.cafescraper.com/api/v1/run/result/list" \
 Response includes:
 - `data.count` — total number of result records
 - `data.headers[]` — column definitions with `label`, `key`, `format`
-- `data.list[]` — the actual data records (each record also contains a `__cafe_data_id__`)
+- `data.list[]` — the actual data records (each record also contains a `__coreclaw_data_id__`)
 
 First call with `page_size: 20` to check `data.count`. If the user needs all data and count is large (>100), switch to export. Otherwise paginate through with `page: 2, 3, ...`.
 
 **Option B: File export (`result/export`)** — preferred for saving to disk
 
 ```bash
-curl -s -X POST "https://openapi.cafescraper.com/api/v1/run/result/export" \
-  -H "api-key: $CAFE_API_KEY" \
+curl -s -X POST "https://openapi.coreclaw.com/api/v1/run/result/export" \
+  -H "api-key: $CORECLAW_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"run_slug": "RUN_SLUG", "format": "csv", "filter_keys": []}'
 ```
@@ -199,8 +199,8 @@ Response returns a temporary download URL (valid ~30 min), not raw data:
 Then download the file:
 
 ```bash
-DL_URL=$(curl -s -X POST "https://openapi.cafescraper.com/api/v1/run/result/export" \
-  -H "api-key: $CAFE_API_KEY" \
+DL_URL=$(curl -s -X POST "https://openapi.coreclaw.com/api/v1/run/result/export" \
+  -H "api-key: $CORECLAW_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"run_slug": "RUN_SLUG", "format": "csv", "filter_keys": []}' | jq -r '.data.download_url')
 curl -L -o results.csv "$DL_URL"
@@ -208,13 +208,13 @@ curl -L -o results.csv "$DL_URL"
 
 ### 6. Run a saved task
 
-Tasks are pre-configured scraper runs saved in the Cafe console. Run one by its `task_slug`:
+Tasks are pre-configured scraper runs saved in the CoreClaw console. Run one by its `task_slug`:
 
 ```bash
-curl -s -X POST "https://openapi.cafescraper.com/api/v1/task/run" \
-  -H "api-key: $CAFE_API_KEY" \
+curl -s -X POST "https://openapi.coreclaw.com/api/v1/task/run" \
+  -H "api-key: $CORECLAW_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"task_slug": "TASK_SLUG", "callback_url": "https://openapi.cafescraper.com/api//v1/test/callback"}'
+  -d '{"task_slug": "TASK_SLUG", "callback_url": "https://your-callback.example.com/webhook"}'
 ```
 
 Returns a `run_slug` in the response — use it to poll status and fetch results as usual.
@@ -224,10 +224,10 @@ Returns a `run_slug` in the response — use it to poll status and fetch results
 Re-run using the same parameters from a previous run:
 
 ```bash
-curl -s -X POST "https://openapi.cafescraper.com/api/v1/rerun" \
-  -H "api-key: $CAFE_API_KEY" \
+curl -s -X POST "https://openapi.coreclaw.com/api/v1/rerun" \
+  -H "api-key: $CORECLAW_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"run_slug": "PREVIOUS_RUN_SLUG", "callback_url": "https://openapi.cafescraper.com/api//v1/test/callback"}'
+  -d '{"run_slug": "PREVIOUS_RUN_SLUG", "callback_url": "https://your-callback.example.com/webhook"}'
 ```
 
 Returns a new `run_slug` for the re-run.
@@ -237,8 +237,8 @@ Returns a new `run_slug` for the re-run.
 Get logs for a run to debug issues:
 
 ```bash
-curl -s -X POST "https://openapi.cafescraper.com/api/v1/run/last/log" \
-  -H "api-key: $CAFE_API_KEY" \
+curl -s -X POST "https://openapi.coreclaw.com/api/v1/run/last/log" \
+  -H "api-key: $CORECLAW_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"run_slug": "RUN_SLUG"}' | jq '.data.list[] | {type, group, content, timestamp}'
 ```
@@ -261,8 +261,8 @@ Response also includes:
 Stop a running scraper:
 
 ```bash
-curl -s -X POST "https://openapi.cafescraper.com/api/v1/scraper/abort" \
-  -H "api-key: $CAFE_API_KEY" \
+curl -s -X POST "https://openapi.coreclaw.com/api/v1/scraper/abort" \
+  -H "api-key: $CORECLAW_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"run_slug": "RUN_SLUG"}'
 ```
@@ -272,8 +272,8 @@ curl -s -X POST "https://openapi.cafescraper.com/api/v1/scraper/abort" \
 Check your balance and traffic usage:
 
 ```bash
-curl -s -X POST "https://openapi.cafescraper.com/api/v1/account/info" \
-  -H "api-key: $CAFE_API_KEY" \
+curl -s -X POST "https://openapi.coreclaw.com/api/v1/account/info" \
+  -H "api-key: $CORECLAW_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{}' | jq '.data | {balance, traffic, traffic_expiration_at}'
 ```
@@ -289,11 +289,11 @@ Returns:
 
 ```bash
 # 1. Search for a scraper
-SLUG=$(curl -s "https://openapi.cafescraper.com/api/store?search=amazon&limit=1" \
+SLUG=$(curl -s "https://openapi.coreclaw.com/api/store?search=amazon&limit=1" \
   | jq -r '.data.scraper[0].slug')
 
 # 2. Get scraper detail — extract version, system defaults, and custom field schema
-DETAIL=$(curl -s "https://openapi.cafescraper.com/api/scraper?slug=$SLUG")
+DETAIL=$(curl -s "https://openapi.coreclaw.com/api/scraper?slug=$SLUG")
 VERSION=$(echo "$DETAIL" | jq -r '.data.version')
 CPUS=$(echo "$DETAIL" | jq -r '.data.parameters.system.cpus')
 MEMORY=$(echo "$DETAIL" | jq -r '.data.parameters.system.memory_bytes')
@@ -301,8 +301,8 @@ TIMEOUT=$(echo "$DETAIL" | jq -r '.data.parameters.system.execute_limit_time_sec
 # Check data.parameters.custom.properties[] for scraper-specific input fields
 
 # 3. Start the run (use values from Step 2, customize "custom" per scraper)
-RUN=$(curl -s -X POST "https://openapi.cafescraper.com/api/v1/scraper/run" \
-  -H "api-key: $CAFE_API_KEY" \
+RUN=$(curl -s -X POST "https://openapi.coreclaw.com/api/v1/scraper/run" \
+  -H "api-key: $CORECLAW_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "scraper_slug": "'"$SLUG"'",
@@ -322,7 +322,7 @@ RUN=$(curl -s -X POST "https://openapi.cafescraper.com/api/v1/scraper/run" \
         }
       }
     },
-    "callback_url": "https://openapi.cafescraper.com/api//v1/test/callback"
+    "callback_url": "https://your-callback.example.com/webhook"
   }')
 RUN_SLUG=$(echo "$RUN" | jq -r '.data.run_slug')
 echo "Started run: $RUN_SLUG"
@@ -330,8 +330,8 @@ echo "Started run: $RUN_SLUG"
 # 4. Poll until done (with safeguards)
 CONSECUTIVE_ERRORS=0
 while true; do
-  RESP=$(curl -s -X POST "https://openapi.cafescraper.com/api/v1/run/detail" \
-    -H "api-key: $CAFE_API_KEY" \
+  RESP=$(curl -s -X POST "https://openapi.coreclaw.com/api/v1/run/detail" \
+    -H "api-key: $CORECLAW_API_KEY" \
     -H "Content-Type: application/json" \
     -d '{"run_slug": "'"$RUN_SLUG"'"}')
   RESP_CLEAN=$(echo "$RESP" | tr -d '\000-\011\013-\037')
@@ -348,8 +348,8 @@ while true; do
 done
 
 # 5. Check result count
-RESULT=$(curl -s -X POST "https://openapi.cafescraper.com/api/v1/run/result/list" \
-  -H "api-key: $CAFE_API_KEY" \
+RESULT=$(curl -s -X POST "https://openapi.coreclaw.com/api/v1/run/result/list" \
+  -H "api-key: $CORECLAW_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"run_slug": "'"$RUN_SLUG"'", "page": 1, "page_size": 20}')
 COUNT=$(echo "$RESULT" | jq '.data.count')
@@ -359,8 +359,8 @@ echo "Total results: $COUNT"
 echo "$RESULT" | jq '.data.list'
 
 # 6b. Large dataset (>100) — export to file
-DL_URL=$(curl -s -X POST "https://openapi.cafescraper.com/api/v1/run/result/export" \
-  -H "api-key: $CAFE_API_KEY" \
+DL_URL=$(curl -s -X POST "https://openapi.coreclaw.com/api/v1/run/result/export" \
+  -H "api-key: $CORECLAW_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"run_slug": "'"$RUN_SLUG"'", "format": "json", "filter_keys": []}' | jq -r '.data.download_url')
 curl -L -o results.json "$DL_URL"
@@ -369,24 +369,24 @@ curl -L -o results.json "$DL_URL"
 ### Run a saved task
 
 ```bash
-curl -s -X POST "https://openapi.cafescraper.com/api/v1/task/run" \
-  -H "api-key: $CAFE_API_KEY" \
+curl -s -X POST "https://openapi.coreclaw.com/api/v1/task/run" \
+  -H "api-key: $CORECLAW_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"task_slug": "TASK_SLUG", "callback_url": "https://openapi.cafescraper.com/api//v1/test/callback"}'
+  -d '{"task_slug": "TASK_SLUG", "callback_url": "https://your-callback.example.com/webhook"}'
 ```
 
 ### Debug a failed run
 
 ```bash
 # 1. Check run detail
-curl -s -X POST "https://openapi.cafescraper.com/api/v1/run/detail" \
-  -H "api-key: $CAFE_API_KEY" \
+curl -s -X POST "https://openapi.coreclaw.com/api/v1/run/detail" \
+  -H "api-key: $CORECLAW_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"run_slug": "RUN_SLUG"}' | jq '.data | {status, err_msg, duration, usage}'
 
 # 2. Get logs (filter for errors)
-curl -s -X POST "https://openapi.cafescraper.com/api/v1/run/last/log" \
-  -H "api-key: $CAFE_API_KEY" \
+curl -s -X POST "https://openapi.coreclaw.com/api/v1/run/last/log" \
+  -H "api-key: $CORECLAW_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"run_slug": "RUN_SLUG"}' | jq '.data.list[] | select(.type == 4) | {content, timestamp}'
 ```
@@ -396,8 +396,8 @@ curl -s -X POST "https://openapi.cafescraper.com/api/v1/run/last/log" \
 List past runs with pagination and optional filters:
 
 ```bash
-curl -s -X POST "https://openapi.cafescraper.com/api/v1/run/list" \
-  -H "api-key: $CAFE_API_KEY" \
+curl -s -X POST "https://openapi.coreclaw.com/api/v1/run/list" \
+  -H "api-key: $CORECLAW_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"page": 1, "page_size": 20, "status": 0, "scraper_slug": ""}'
 ```
@@ -435,7 +435,7 @@ All responses use a standard envelope: `{"code": <int>, "message": "<string>", "
 
 HTTP status codes:
 - **400**: bad request — check required fields and parameter types.
-- **401**: `CAFE_API_KEY` is missing, invalid, or expired.
+- **401**: `CORECLAW_API_KEY` is missing, invalid, or expired.
 - **404**: scraper, run, or task not found — verify the slug.
 - **429**: too many requests — back off and retry.
 - **5xx**: server error — retry with backoff.
@@ -465,4 +465,4 @@ The `proxy_region` field in `input.parameters.custom` accepts ISO 3166-1 alpha-2
 ## Additional resources
 
 - OpenAPI spec: [openapi.json](openapi.json)
-- Cafe Store (browse scrapers): https://cafescraper.com
+- CoreClaw Store (browse scrapers): https://coreclaw.com/store
