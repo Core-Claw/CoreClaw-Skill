@@ -54,7 +54,7 @@
             "name": "search",
             "in": "query",
             "description": "Keyword used to search the scraper store.",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "string"
             }
