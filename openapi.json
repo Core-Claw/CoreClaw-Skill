@@ -156,7 +156,7 @@
                         "parameters": {
                           "system": {
                             "cpus": 0.125,
-                            "memory_bytes": 512,
+                            "memory": 512,
                             "max_total_charge": 0,
                             "max_total_traffic": 0,
                             "execute_limit_time_seconds": 1800
@@ -210,7 +210,7 @@
           "Runs"
         ],
         "summary": "Start scraper run",
-        "description": "Start a new Worker run by `scraper_slug`. Verified runtime rule: `callback_url` is optional; include it when webhook orchestration is needed. `version` must come from `/api/scraper`. `input.parameters.custom` is dynamic and must be derived from `/api/scraper`. `input.parameters.system.memory` is measured in MB and corresponds to `memory_bytes` returned by `/api/scraper`.",
+        "description": "Start a new Worker run by `scraper_slug`. Verified runtime rule: `callback_url` is optional; include it when webhook orchestration is needed. `version` must come from `/api/scraper`. `input.parameters.custom` is dynamic and must be derived from `/api/scraper`. `input.parameters.system.memory` is measured in MB and matches the `memory` field returned by `/api/scraper`.",
         "requestBody": {
           "required": true,
           "content": {
@@ -1007,7 +1007,7 @@
           },
           "memory": {
             "type": "integer",
-            "description": "Memory allocation in MB. This corresponds to `memory_bytes` returned by `/api/scraper`.",
+            "description": "Memory allocation in MB. This matches the `memory` field returned by `/api/scraper`.",
             "enum": [
               512,
               1024,
@@ -1051,9 +1051,9 @@
             "type": "number",
             "description": "Default CPU allocation."
           },
-          "memory_bytes": {
+          "memory": {
             "type": "integer",
-            "description": "Default memory allocation in MB. Map this value to `input.parameters.system.memory` when calling `/api/v1/scraper/run`."
+            "description": "Default memory allocation in MB. Use this value directly in `input.parameters.system.memory` when calling `/api/v1/scraper/run`."
           },
           "max_total_charge": {
             "type": "number",
@@ -1070,7 +1070,7 @@
         },
         "required": [
           "cpus",
-          "memory_bytes",
+          "memory",
           "max_total_charge",
           "max_total_traffic",
           "execute_limit_time_seconds"
