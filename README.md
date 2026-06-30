@@ -2,118 +2,36 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-This repository packages CoreClaw usage instructions for AI agents. It helps an agent move through the full CoreClaw workflow: discover a scraper, read its live schema, start a run, poll status, fetch results, export files, inspect logs, rerun jobs, abort jobs, and check account quota.
+This repository packages the CoreClaw OpenAPI v2 worker workflow as an AI-agent skill. It is MCP-first, v2-only, and designed for agents that need to discover workers, inspect schemas, run jobs, poll status, retrieve results, export files, inspect logs, rerun jobs, abort jobs, and check account quota.
 
-It is intentionally small:
+## Contents
 
 ```text
 .
-├── LICENSE
-├── README.md
-├── README.zh-CN.md
 ├── SKILL.md
-└── openapi.json
+├── agents/openai.yaml
+├── openapi.json
+├── references/
+│   ├── coreclaw-v2-workflow.md
+│   ├── error-handling.md
+│   ├── mcp-tools.md
+│   └── rest-api-fallback.md
+└── scripts/
+    ├── generate_references.py
+    └── validate_skill.py
 ```
 
-## What Each File Does
+## Runtime
 
-- `SKILL.md`: the agent playbook. Skill-enabled agents load this file and follow its workflow.
-- `openapi.json`: the API contract reference for exact endpoints, parameters, and response shapes.
-- `README.md` / `README.zh-CN.md`: concise human setup and maintenance notes.
-- `LICENSE`: repository license.
+- Hosted MCP endpoint: `https://mcp.coreclaw.com/mcp`
+- REST API base URL: `https://openapi.coreclaw.com`
+- API namespace: `/api/v2`
+- Environment variable for REST fallback: `CORECLAW_API_KEY`
+- Preferred REST auth: `Authorization: Bearer $CORECLAW_API_KEY`
 
-## Install The Skill
+## MCP Configuration
 
-### Codex
-
-Place the repository under the Codex skills directory:
-
-```bash
-~/.codex/skills/coreclaw
-```
-
-On Windows, the equivalent path is usually:
-
-```powershell
-$env:USERPROFILE\.codex\skills\coreclaw
-```
-
-Restart Codex after copying the folder.
-
-### Claude Code Or Other Skill-Aware Agents
-
-Place the full repository in the agent's skill directory and make sure `SKILL.md` stays at the folder root.
-
-If the agent does not support automatic skill discovery, attach or reference:
-
-- `SKILL.md`
-- `openapi.json`
-
-## Runtime Requirements
-
-- API base URL: `https://openapi.coreclaw.com`
-- Environment variable: `CORECLAW_API_KEY`
-- Auth header: `api-key: $CORECLAW_API_KEY`
-- Required command-line tool: `curl`
-- Optional command-line tool: `jq` for formatting and filtering JSON
-
-Set the API key:
-
-```bash
-export CORECLAW_API_KEY="your_api_key"
-```
-
-PowerShell:
-
-```powershell
-$env:CORECLAW_API_KEY = "your_api_key"
-```
-
-Do not commit real API keys.
-
-## How The Agent Should Work
-
-The safe workflow is:
-
-1. Search for a scraper with `/api/store`.
-2. Fetch scraper detail with `/api/scraper`.
-3. Read `data.version`, `data.parameters.custom`, and `data.parameters.system`.
-4. Build `input.parameters.custom` from the live schema.
-5. Start a run with `/api/v1/scraper/run`.
-6. Save `run_slug`.
-7. Poll `/api/v1/run/detail`.
-8. Read results with `/api/v1/run/result/list` or export with `/api/v1/run/result/export`.
-9. If anything fails, inspect `/api/v1/run/last/log`.
-
-The most important rule: `data.parameters.custom` is a schema descriptor. It is not the payload to paste into `input.parameters.custom`.
-
-## Core API Capabilities
-
-| Capability | Endpoint |
-| --- | --- |
-| Search marketplace | `GET /api/store` |
-| Get scraper detail and live schema | `GET /api/scraper` |
-| Start scraper run | `POST /api/v1/scraper/run` |
-| Abort running job | `POST /api/v1/scraper/abort` |
-| List historical runs | `POST /api/v1/run/list` |
-| Get run detail/status | `POST /api/v1/run/detail` |
-| Read paginated results | `POST /api/v1/run/result/list` |
-| Export results | `POST /api/v1/run/result/export` |
-| Read latest logs | `POST /api/v1/run/last/log` |
-| Rerun previous job | `POST /api/v1/rerun` |
-| Run saved task | `POST /api/v1/task/run` |
-| Check account quota | `POST /api/v1/account/info` |
-
-## Example Prompts
-
-- "Find a CoreClaw scraper for Amazon product listings, read its live schema, run it with keyword `wireless mouse`, and show the first 20 results."
-- "Start this scraper asynchronously, save the `run_slug`, poll status until it finishes, then export CSV if there are more than 50 records."
-- "This run failed. Check run detail and latest logs, then summarize the real failure reason."
-- "Rerun this historical `run_slug`, track the new run, and preview the first 10 records."
-
-## MCP Option
-
-If the agent supports MCP, configure the CoreClaw remote MCP server instead of writing HTTP calls by hand:
+Use the hosted MCP server when the agent supports MCP:
 
 ```json
 {
@@ -121,42 +39,82 @@ If the agent supports MCP, configure the CoreClaw remote MCP server instead of w
     "coreclaw": {
       "url": "https://mcp.coreclaw.com/mcp",
       "headers": {
-        "api-key": "scraper_api_YOUR_KEY_HERE"
+        "api-key": "your-coreclaw-token"
       }
     }
   }
 }
 ```
 
-MCP gives the agent named tools. This skill still provides the operating method: discover, inspect, run, track, retrieve, and diagnose.
+The server accepts `api-key`, `X-API-Key`, or `Authorization: Bearer <token>` from MCP clients and forwards CoreClaw API auth upstream as Bearer auth.
 
-## Maintainer Checks
+## Public MCP Surface
 
-Before publishing a change:
+The CoreClaw MCP server exposes 28 public tools covering:
+
+- discovery and preflight
+- ad-hoc worker runs
+- saved worker task runs
+- run lookup and polling
+- result previews
+- CSV/JSON exports
+- logs
+- reruns
+- abort controls
+
+The skill deliberately exposes only the public 28-operation CoreClaw MCP/API v2 surface. See `references/mcp-tools.md` for the exact tool matrix.
+
+## Agent Workflow
+
+1. Use `list_store_workers` for public marketplace discovery or `list_workers` for user-owned workers.
+2. Use `get_worker_input_schema` before `run_worker`.
+3. Use `run_worker` for ad-hoc schema-aligned input or `run_worker_task` for saved task presets.
+4. Save the returned run identifier as `run_id`.
+5. Poll run detail until terminal status.
+6. Preview results with list-result tools or export large outputs.
+7. Inspect logs when a run fails or produces unexpected output.
+
+## REST Fallback
+
+REST is a fallback when MCP is unavailable. Set an API key without committing it:
 
 ```bash
-git diff --check
-node -e "JSON.parse(require('fs').readFileSync('openapi.json','utf8'))"
+export CORECLAW_API_KEY="your-coreclaw-token"
 ```
 
-Then verify:
+PowerShell:
 
-- `SKILL.md` frontmatter is valid YAML.
-- README links point to existing files.
-- All examples use the current `memory` field for MB allocation.
-- Scraper run examples fetch `/api/scraper` before `/api/v1/scraper/run`.
-- Task and rerun examples follow the current `callback_url` rules in `openapi.json`.
+```powershell
+$env:CORECLAW_API_KEY = "your-coreclaw-token"
+```
 
-## Support Boundary
+Use only `/api/v2` endpoints. See `references/rest-api-fallback.md` for curl examples.
 
-Open an issue with:
+## Maintenance
 
-- the agent or host application used
-- the scraper slug or run slug, if relevant
-- sanitized request payload
-- sanitized response or log excerpt
-- steps to reproduce
+Regenerate references from the sibling source repositories:
 
-Do not share real API keys, private datasets, or full credentials in issues.
+```bash
+python scripts/generate_references.py --copy-openapi
+```
 
-For product documentation, visit [CoreClaw](https://coreclaw.com).
+Validate the package:
+
+```bash
+python scripts/validate_skill.py
+python C:/Users/user/.codex/skills/.system/skill-creator/scripts/quick_validate.py .
+```
+
+Expected contract:
+
+- Bundled public OpenAPI operations: 28
+- Public MCP tools: 28
+- Excluded operations: 3
+- No legacy v1 workflow terms in the skill docs
+
+## Example Prompts
+
+- "Use CoreClaw to find a worker for coffee shop data, inspect its input schema, run it, and preview the first 20 records."
+- "Run this saved CoreClaw task asynchronously, poll until it finishes, then export CSV."
+- "This CoreClaw run failed. Check run detail and logs, then explain the failure with request id evidence."
+- "Rerun the latest CoreClaw worker run and show the new run id."

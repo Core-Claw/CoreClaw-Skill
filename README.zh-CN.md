@@ -2,118 +2,36 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-这个仓库把 CoreClaw 的使用方式整理成给 AI Agent 使用的 Skill。Agent 可以按固定流程完成：寻找 scraper、读取 live schema、启动运行、轮询状态、读取结果、导出文件、查看日志、重跑任务、中止任务，以及检查账号额度。
+本仓库把 CoreClaw OpenAPI v2 的 worker 工作流封装为 AI Agent 可使用的 skill。它以 MCP 为首选入口，仅面向 v2 接口，覆盖 worker 发现、schema 检查、运行、轮询、结果读取、文件导出、日志排查、重跑、停止和账号额度检查。
 
-仓库保持精简：
+## 文件结构
 
 ```text
 .
-├── LICENSE
-├── README.md
-├── README.zh-CN.md
 ├── SKILL.md
-└── openapi.json
+├── agents/openai.yaml
+├── openapi.json
+├── references/
+│   ├── coreclaw-v2-workflow.md
+│   ├── error-handling.md
+│   ├── mcp-tools.md
+│   └── rest-api-fallback.md
+└── scripts/
+    ├── generate_references.py
+    └── validate_skill.py
 ```
 
-## 文件说明
+## 运行入口
 
-- `SKILL.md`：给 Agent 的操作手册。支持 Skill 的 Agent 会读取它并按流程工作。
-- `openapi.json`：接口契约，包含端点、参数和响应结构。
-- `README.md` / `README.zh-CN.md`：给人看的安装、使用和维护说明。
-- `LICENSE`：仓库许可证。
+- 托管 MCP endpoint：`https://mcp.coreclaw.com/mcp`
+- REST API base URL：`https://openapi.coreclaw.com`
+- API namespace：`/api/v2`
+- REST fallback 环境变量：`CORECLAW_API_KEY`
+- 推荐 REST 鉴权：`Authorization: Bearer $CORECLAW_API_KEY`
 
-## 安装 Skill
+## MCP 配置
 
-### Codex
-
-把整个仓库放到 Codex skills 目录：
-
-```bash
-~/.codex/skills/coreclaw
-```
-
-Windows 常见路径：
-
-```powershell
-$env:USERPROFILE\.codex\skills\coreclaw
-```
-
-复制后重启 Codex。
-
-### Claude Code 或其他支持 Skill 的 Agent
-
-把整个仓库放到对应 Agent 的 skills 目录，并确保 `SKILL.md` 位于该目录根部。
-
-如果宿主不支持自动发现 Skill，可以手动把以下文件提供给 Agent：
-
-- `SKILL.md`
-- `openapi.json`
-
-## 运行条件
-
-- API 基础地址：`https://openapi.coreclaw.com`
-- 环境变量：`CORECLAW_API_KEY`
-- 请求头：`api-key: $CORECLAW_API_KEY`
-- 必需命令行工具：`curl`
-- 可选命令行工具：`jq`，用于格式化和过滤 JSON
-
-设置 API Key：
-
-```bash
-export CORECLAW_API_KEY="your_api_key"
-```
-
-PowerShell：
-
-```powershell
-$env:CORECLAW_API_KEY = "your_api_key"
-```
-
-不要把真实 API Key 提交到仓库。
-
-## Agent 应该怎么工作
-
-安全流程如下：
-
-1. 用 `/api/store` 搜索 scraper。
-2. 用 `/api/scraper` 读取 scraper detail。
-3. 读取 `data.version`、`data.parameters.custom` 和 `data.parameters.system`。
-4. 根据 live schema 组织 `input.parameters.custom`。
-5. 用 `/api/v1/scraper/run` 启动运行。
-6. 保存 `run_slug`。
-7. 用 `/api/v1/run/detail` 轮询状态。
-8. 用 `/api/v1/run/result/list` 读取结果，或用 `/api/v1/run/result/export` 导出文件。
-9. 如果失败，用 `/api/v1/run/last/log` 查看日志。
-
-最关键的一点：`data.parameters.custom` 是 schema 描述，不是可以直接复制到 `input.parameters.custom` 的运行 payload。
-
-## 12 个核心 API 能力
-
-| 能力 | 接口 |
-| --- | --- |
-| 搜索市场中的 scraper | `GET /api/store` |
-| 获取 scraper detail 和 live schema | `GET /api/scraper` |
-| 启动 scraper 运行 | `POST /api/v1/scraper/run` |
-| 中止运行中的任务 | `POST /api/v1/scraper/abort` |
-| 查看历史运行列表 | `POST /api/v1/run/list` |
-| 获取运行详情和状态 | `POST /api/v1/run/detail` |
-| 分页读取结果 | `POST /api/v1/run/result/list` |
-| 导出结果文件 | `POST /api/v1/run/result/export` |
-| 读取最新日志 | `POST /api/v1/run/last/log` |
-| 重跑历史任务 | `POST /api/v1/rerun` |
-| 运行已保存任务模板 | `POST /api/v1/task/run` |
-| 查询账号额度 | `POST /api/v1/account/info` |
-
-## 示例提示词
-
-- “帮我找一个适合抓 Amazon 商品列表的 CoreClaw scraper，读取 live schema，用关键词 `wireless mouse` 跑一次，并展示前 20 条结果。”
-- “异步启动这个 scraper，保存 `run_slug`，持续轮询直到完成；如果结果超过 50 条，就导出 CSV。”
-- “这次运行失败了。请查看 run detail 和最新日志，说明真正的失败原因。”
-- “用这个历史 `run_slug` 重新运行一次，跟踪新任务，并预览前 10 条结果。”
-
-## MCP 方式
-
-如果 Agent 支持 MCP，可以配置 CoreClaw 远程 MCP 服务，让 Agent 调用命名工具，而不是手写 HTTP 请求：
+支持 MCP 的 Agent 优先使用托管 MCP 服务：
 
 ```json
 {
@@ -121,42 +39,82 @@ $env:CORECLAW_API_KEY = "your_api_key"
     "coreclaw": {
       "url": "https://mcp.coreclaw.com/mcp",
       "headers": {
-        "api-key": "scraper_api_YOUR_KEY_HERE"
+        "api-key": "your-coreclaw-token"
       }
     }
   }
 }
 ```
 
-MCP 提供工具，Skill 提供操作方法：搜索、读取 schema、运行、跟踪、取结果、排错。
+MCP 服务支持 `api-key`、`X-API-Key` 和 `Authorization: Bearer <token>`，并统一转发为 CoreClaw 上游 Bearer 鉴权。
 
-## 维护检查
+## MCP 能力范围
 
-发布变更前先运行：
+CoreClaw MCP server 暴露 28 个公开工具，覆盖：
+
+- 发现和预检
+- 直接运行 worker
+- 运行已保存的 worker task
+- 查询和轮询 run
+- 预览结果
+- 导出 CSV/JSON
+- 查看日志
+- 重跑
+- 停止运行
+
+Skill 只暴露公开的 28 个 CoreClaw MCP/API v2 操作。完整工具矩阵见 `references/mcp-tools.md`。
+
+## Agent 工作流
+
+1. 用 `list_store_workers` 查公开 marketplace worker，或用 `list_workers` 查当前用户的 worker。
+2. 在 `run_worker` 前必须调用 `get_worker_input_schema`。
+3. 用 `run_worker` 发送符合 schema 的临时输入，或用 `run_worker_task` 运行已保存任务。
+4. 保存返回的运行标识为 `run_id`。
+5. 轮询 run detail 直到终态。
+6. 小结果用 list-result 工具预览，大结果用 export 工具导出。
+7. run 失败或结果异常时先查 run detail，再查日志。
+
+## REST fallback
+
+只有在 MCP 不可用或用户明确要求 HTTP 示例时才使用 REST。设置 API key 时不要提交真实密钥：
 
 ```bash
-git diff --check
-node -e "JSON.parse(require('fs').readFileSync('openapi.json','utf8'))"
+export CORECLAW_API_KEY="your-coreclaw-token"
 ```
 
-并确认：
+PowerShell：
 
-- `SKILL.md` frontmatter 是合法 YAML。
-- README 链接都指向存在的文件。
-- 示例统一使用当前的 `memory` 字段表示 MB 内存配置。
-- 启动 scraper 的示例必须先读取 `/api/scraper`，再调用 `/api/v1/scraper/run`。
-- Task 和 rerun 示例符合 `openapi.json` 中当前的 `callback_url` 规则。
+```powershell
+$env:CORECLAW_API_KEY = "your-coreclaw-token"
+```
 
-## 支持边界
+REST 只使用 `/api/v2` 接口。curl 示例见 `references/rest-api-fallback.md`。
 
-提交 issue 时请提供：
+## 维护命令
 
-- 使用的 Agent 或宿主应用
-- 相关 scraper slug 或 run slug
-- 脱敏后的请求 payload
-- 脱敏后的响应或日志片段
-- 复现步骤
+从同级源码仓库重新生成引用材料：
 
-不要在 issue 中提交真实 API Key、私有数据或完整凭据。
+```bash
+python scripts/generate_references.py --copy-openapi
+```
 
-产品文档请访问 [CoreClaw](https://coreclaw.com)。
+验证 skill 包：
+
+```bash
+python scripts/validate_skill.py
+python C:/Users/user/.codex/skills/.system/skill-creator/scripts/quick_validate.py .
+```
+
+预期契约：
+
+- bundled public OpenAPI operations：28
+- 公开 MCP tools：28
+- 排除 operations：3
+- skill 文档中不再出现旧 v1 工作流术语
+
+## 示例提示词
+
+- "用 CoreClaw 找一个采集 coffee shop 数据的 worker，读取 schema，运行后预览前 20 条记录。"
+- "运行这个已保存的 CoreClaw task，异步轮询到完成，然后导出 CSV。"
+- "这个 CoreClaw run 失败了。请查看 run detail 和日志，带 request id 说明原因。"
+- "重跑最新一次 CoreClaw worker run，并告诉我新的 run id。"

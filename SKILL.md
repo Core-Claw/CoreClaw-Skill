@@ -1,216 +1,138 @@
 ---
 name: coreclaw
-description: Use CoreClaw from an AI agent. Discover scrapers, read live schemas, run jobs, poll status, fetch or export results, inspect logs, rerun jobs, abort jobs, and check account quota.
-homepage: https://coreclaw.com
-metadata:
-  openclaw:
-    primaryEnv: CORECLAW_API_KEY
-    requires:
-      bins: [curl]
-      env: [CORECLAW_API_KEY]
+description: "Use when an agent needs to operate CoreClaw API v2 or CoreClaw MCP: discover/list workers, inspect input schemas, run workers or saved tasks, poll run status, retrieve/export results, inspect logs, rerun/abort runs, check account quota, use proxy regions, or troubleshoot CoreClaw worker execution in English or Chinese."
 ---
 
 # CoreClaw Agent Skill
 
-Use this skill when the user wants an AI agent to operate CoreClaw directly: find a scraper, inspect its live input schema, start a run, watch progress, retrieve data, export files, troubleshoot failures, or repeat a previous run.
+Use this skill to operate CoreClaw through the OpenAPI v2 worker model. This is an MCP-first skill: when CoreClaw MCP tools are available, use them instead of hand-written HTTP.
 
-This repository is not an SDK. `SKILL.md` is the agent playbook, and `openapi.json` is the API contract reference.
+## Sources
 
-## Runtime
+- Hosted MCP endpoint: `https://mcp.coreclaw.com/mcp`
+- REST API base URL: `https://openapi.coreclaw.com`
+- Bundled contract: `openapi.json`
+- Detailed references:
+  - `references/coreclaw-v2-workflow.md`
+  - `references/mcp-tools.md`
+  - `references/rest-api-fallback.md`
+  - `references/error-handling.md`
 
-- Base URL: `https://openapi.coreclaw.com`
-- API key environment variable: `CORECLAW_API_KEY`
-- Auth header: `api-key: $CORECLAW_API_KEY`
-- Required local tool: `curl`
-- Optional local tool: `jq` for formatting and filtering JSON
+Read the relevant reference file only when the task needs more detail than this playbook provides.
 
-Before calling authenticated endpoints, check that `CORECLAW_API_KEY` is set. Do not print the key.
+## Operating Rules
 
-## Core Rules
+1. Prefer MCP tools over REST. Use REST only when MCP is unavailable or the user asks for raw HTTP.
+2. Use v2 identifiers: `worker_id`, `worker_task_id`, and `run_id`.
+3. Use only the public 28-operation CoreClaw MCP/API v2 surface bundled with this skill.
+4. Always inspect `get_worker_input_schema` before `run_worker`.
+5. Build `run_worker.input_json` from the live schema. Do not invent field names.
+6. Use `run_worker_task` for saved task presets instead of rebuilding their input.
+7. Save the returned run identifier as `run_id`; REST responses may expose it as `data.run_slug`.
+8. Poll with backoff. Do not tight-loop status or result calls.
+9. Preview small result sets with list-result tools; use export tools for downloadable CSV or JSON.
+10. If a run fails, inspect run detail first, then logs.
+11. Rerun only when the user asks to repeat or retry a previous run.
+12. Abort only when the user asks to stop/cancel or an active run is confirmed.
 
-1. Always fetch scraper detail before running a scraper.
-2. Treat `data.parameters.custom` from `GET /api/scraper` as a schema descriptor, not as the run payload.
-3. Build `input.parameters.custom` from the live schema. Do not hardcode fields such as `startURLs`, `url`, or `keyword`.
-4. Use the `version` returned by scraper detail. Do not invent a version.
-5. Keep the returned `run_slug`; every status, result, log, export, rerun, and abort operation depends on it.
-6. Prefer inline result preview for small result sets and export for large result sets.
-7. If a run fails, inspect run detail first, then logs.
+## MCP Tool Workflow
 
-## Endpoint Map
+Use this default sequence:
 
-| Job | Endpoint |
-| --- | --- |
-| Search marketplace | `GET /api/store` |
-| Get scraper detail and live schema | `GET /api/scraper` |
-| Start scraper run | `POST /api/v1/scraper/run` |
-| Abort running job | `POST /api/v1/scraper/abort` |
-| List historical runs | `POST /api/v1/run/list` |
-| Get run detail/status | `POST /api/v1/run/detail` |
-| Read paginated results | `POST /api/v1/run/result/list` |
-| Export results | `POST /api/v1/run/result/export` |
-| Read latest logs | `POST /api/v1/run/last/log` |
-| Rerun previous job | `POST /api/v1/rerun` |
-| Run saved task | `POST /api/v1/task/run` |
-| Check account quota | `POST /api/v1/account/info` |
+1. Discovery and preflight:
+   - `list_store_workers` for public marketplace workers.
+   - `list_workers` for authenticated user-owned workers.
+   - `get_worker` for version, README, and metadata.
+   - `get_worker_input_schema` before ad-hoc runs.
+   - `list_worker_tasks` before saved task runs.
+   - `list_proxy_regions` when the schema asks for a proxy region.
+   - `get_account_info` when balance, quota, or auth health matters.
+2. Execution:
+   - `run_worker` for ad-hoc input.
+   - `run_worker_task` for saved task presets.
+3. Run lookup:
+   - `get_worker_run` for a known `run_id`.
+   - `get_last_worker_run` for account-level latest run.
+   - `get_worker_last_run` for latest run scoped to a `worker_id`.
+4. Output:
+   - `list_worker_run_results`, `list_last_worker_run_results`, or `list_worker_last_run_results` for previews.
+   - `export_worker_run_results`, `export_last_worker_run_results`, or `export_worker_last_run_results` for downloads.
+   - `get_worker_run_log`, `get_last_worker_run_log`, or `get_worker_last_run_log` for diagnosis.
+5. Repeat/control:
+   - `rerun_last_worker_run`, `rerun_worker_run`, or `rerun_worker_last_run`.
+   - `abort_last_worker_run`, `abort_worker_run`, or `abort_worker_last_run`.
 
-Use `openapi.json` for exact parameters, response fields, and examples.
+For the exact 28-tool matrix and order, read `references/mcp-tools.md`.
 
-## Standard Workflow
+## Direct Worker Runs
 
-### 1. Discover
+Before calling `run_worker`:
 
-Search the marketplace when the user describes a target site or data need.
+1. Identify the worker through `list_store_workers` or `list_workers`.
+2. Call `get_worker_input_schema` with the selected `worker_id`.
+3. Map user-provided business input to the schema.
+4. If required schema fields are missing, ask the user for those values instead of guessing.
 
-```bash
-curl -s "https://openapi.coreclaw.com/api/store?keyword=amazon"
-```
-
-Pick a scraper by relevance and save its `scraper_slug`.
-
-### 2. Inspect
-
-Fetch scraper detail before every new run.
-
-```bash
-curl -s "https://openapi.coreclaw.com/api/scraper?slug=$SCRAPER_SLUG"
-```
-
-Read:
-
-- `data.version`
-- `data.parameters.custom`
-- `data.parameters.system`
-
-The system memory field is `memory` in MB. Use it as `input.parameters.system.memory` when starting a run.
-
-### 3. Build Input
-
-Create a run payload with this shape:
+For MCP `run_worker`, pass schema-aligned business fields as `input_json`, for example:
 
 ```json
-{
-  "scraper_slug": "SCRAPER_SLUG",
-  "version": "VERSION_FROM_DETAIL",
-  "is_async": true,
-  "input": {
-    "parameters": {
-      "custom": {},
-      "system": {
-        "cpus": 0.25,
-        "memory": 512,
-        "max_total_charge": 0,
-        "max_total_traffic": 0,
-        "execute_limit_time_seconds": 1800
-      }
-    }
-  }
-}
+{"keyword":"coffee","limit":10}
 ```
 
-Replace `custom` with values derived from the live schema. If required fields are unclear, ask the user for the missing business input rather than guessing.
+The MCP server wraps this as upstream `input.parameters.custom`. Use `raw_input_json` only for advanced callers who need to send the complete CoreClaw `input` object.
 
-### 4. Run
+## Saved Task Runs
 
-```bash
-curl -s -X POST "https://openapi.coreclaw.com/api/v1/scraper/run" \
-  -H "Content-Type: application/json" \
-  -H "api-key: $CORECLAW_API_KEY" \
-  -d @payload.json
-```
+Use `list_worker_tasks` when the user wants a saved preset, scheduled configuration, or known task template. If the user provides a `worker_task_id`, call `run_worker_task` directly unless the request needs confirmation or task lookup.
 
-Save `data.run_slug` from the response.
+`run_worker_task` normally needs only execution controls such as `is_async`, `callback_url`, `offset`, and `limit`.
 
-### 5. Track
+## Results And Exports
 
-```bash
-curl -s -X POST "https://openapi.coreclaw.com/api/v1/run/detail" \
-  -H "Content-Type: application/json" \
-  -H "api-key: $CORECLAW_API_KEY" \
-  -d "{\"run_slug\":\"$RUN_SLUG\"}"
-```
+Use result-list tools for inspecting records in the conversation. Use export tools when the user asks for a file, a large dataset, CSV, JSON, or all rows.
 
-Poll until the run reaches a terminal state. If the API returns numeric statuses, use the response meaning from `openapi.json` and include the raw status in the final explanation.
+Pagination uses zero-based `offset` and `limit` capped at `100` for list/result endpoints.
 
-### 6. Retrieve
+## Error Handling
 
-Preview smaller result sets:
+When a tool or REST call fails:
 
-```bash
-curl -s -X POST "https://openapi.coreclaw.com/api/v1/run/result/list" \
-  -H "Content-Type: application/json" \
-  -H "api-key: $CORECLAW_API_KEY" \
-  -d "{\"run_slug\":\"$RUN_SLUG\",\"page_index\":1,\"page_size\":20}"
-```
+1. Preserve the operation name, status, `code`, `message`, and `request_id`.
+2. For auth errors, check whether the token is present and valid.
+3. For validation errors, compare input against `get_worker_input_schema`.
+4. For failed runs, fetch run detail and logs before proposing a rerun.
+5. For rate limits, back off instead of retrying immediately.
 
-Export larger result sets:
+Read `references/error-handling.md` for the error code table.
 
-```bash
-curl -s -X POST "https://openapi.coreclaw.com/api/v1/run/result/export" \
-  -H "Content-Type: application/json" \
-  -H "api-key: $CORECLAW_API_KEY" \
-  -d "{\"run_slug\":\"$RUN_SLUG\",\"format\":\"csv\"}"
-```
+## REST Fallback
 
-### 7. Diagnose
+When MCP is unavailable:
 
-When a run fails or stalls:
+1. Check `CORECLAW_API_KEY` without printing it.
+2. Prefer `Authorization: Bearer $CORECLAW_API_KEY`.
+3. Use `/api/v2` endpoints only.
+4. Follow `references/rest-api-fallback.md` for exact curl patterns.
 
-1. Read run detail.
-2. Read latest logs.
-3. Summarize the failure cause, useful evidence, and next action.
+## Reporting Back
 
-```bash
-curl -s -X POST "https://openapi.coreclaw.com/api/v1/run/last/log" \
-  -H "Content-Type: application/json" \
-  -H "api-key: $CORECLAW_API_KEY" \
-  -d "{\"run_slug\":\"$RUN_SLUG\"}"
-```
+Keep responses concise and operational:
 
-## Saved Tasks And Reruns
+- name the selected worker and why it matched
+- show unresolved required input fields before running
+- keep `worker_id`, `worker_task_id`, and `run_id` visible for follow-up
+- preview representative records instead of dumping large result sets
+- provide export links for large outputs
+- include logs and `request_id` when explaining failures
 
-Use saved tasks when the user already has a configured `task_slug`.
+## Completion Checklist
 
-Use rerun when the user wants to repeat an existing `run_slug` with the same inputs.
+Before saying a CoreClaw task is complete, confirm:
 
-For REST API calls, follow the `callback_url` requirements in `openapi.json`. When using the CoreClaw MCP server, the server may provide its own callback handling, so prefer the MCP tool schema over hand-written REST assumptions.
-
-## MCP Alternative
-
-If the user's agent has the CoreClaw MCP server configured, prefer MCP tools over manual HTTP calls. The common remote MCP configuration is:
-
-```json
-{
-  "mcpServers": {
-    "coreclaw": {
-      "url": "https://mcp.coreclaw.com/mcp",
-      "headers": {
-        "api-key": "scraper_api_YOUR_KEY_HERE"
-      }
-    }
-  }
-}
-```
-
-MCP gives the agent named tools for the same workflow. This skill still provides the operating procedure: discover, inspect, run, track, retrieve, and diagnose.
-
-## Response Style
-
-When reporting back to the user:
-
-- explain which scraper was selected and why
-- show the required input fields before running when possible
-- keep `run_slug` visible for follow-up operations
-- preview representative records instead of dumping large datasets
-- provide export links for large datasets
-- include actionable failure evidence if something breaks
-
-## Final Checklist
-
-Before claiming the task is complete, confirm:
-
-- scraper detail was fetched from the live API
-- run payload used the live schema and returned version
-- `run_slug` was saved
-- terminal status was checked
+- worker discovery or identifier validation happened
+- `get_worker_input_schema` was used before `run_worker`
+- saved tasks used `run_worker_task`
+- the returned `run_id` was saved
+- terminal status was checked for async runs
 - results were previewed or exported
-- logs were inspected if the run failed
+- logs were inspected for failed or suspicious runs

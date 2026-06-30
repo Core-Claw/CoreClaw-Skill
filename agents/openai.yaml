@@ -1,0 +1,15 @@
+interface:
+  display_name: "CoreClaw"
+  short_description: "Run CoreClaw workers through MCP or API v2."
+  default_prompt: "Use $coreclaw to find a CoreClaw worker, inspect its input schema, run it, and return results."
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "coreclaw"
+      description: "CoreClaw hosted MCP server exposing the public OpenAPI v2 workflow tools."
+      transport: "streamable_http"
+      url: "https://mcp.coreclaw.com/mcp"
+
+policy:
+  allow_implicit_invocation: true
