@@ -128,9 +128,10 @@ python scripts/validate_skill.py
 
 ## Public MCP Surface
 
-The CoreClaw MCP server exposes 28 public tools covering:
+The CoreClaw MCP server exposes 34 public tools covering:
 
 - discovery and preflight
+- saved worker task CRUD (create, get, update, update input, delete)
 - ad-hoc worker runs
 - saved worker task runs
 - run lookup and polling
@@ -140,7 +141,7 @@ The CoreClaw MCP server exposes 28 public tools covering:
 - reruns
 - abort controls
 
-The skill deliberately exposes only the public 28-operation CoreClaw MCP/API v2 surface. See `references/mcp-tools.md` for the exact tool matrix.
+The skill deliberately exposes only the public 34-operation CoreClaw MCP/API v2 surface. See `references/mcp-tools.md` for the exact tool matrix.
 
 ## Agent Workflow
 
@@ -185,8 +186,8 @@ python C:/Users/user/.codex/skills/.system/skill-creator/scripts/quick_validate.
 
 Expected contract:
 
-- Bundled public OpenAPI operations: 28
-- Public MCP tools: 28
+- Bundled public OpenAPI operations: 34
+- Public MCP tools: 34
 - Excluded operations: 3
 - No legacy v1 workflow terms in the skill docs
 

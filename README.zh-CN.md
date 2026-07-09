@@ -128,9 +128,10 @@ python scripts/validate_skill.py
 
 ## MCP 能力范围
 
-CoreClaw MCP server 暴露 28 个公开工具，覆盖：
+CoreClaw MCP server 暴露 34 个公开工具，覆盖：
 
 - 发现和预检
+- 已保存 worker task 的 CRUD（创建、查看、更新、更新输入、删除）
 - 直接运行 worker
 - 运行已保存的 worker task
 - 查询和轮询 run
@@ -140,7 +141,7 @@ CoreClaw MCP server 暴露 28 个公开工具，覆盖：
 - 重跑
 - 停止运行
 
-Skill 只暴露公开的 28 个 CoreClaw MCP/API v2 操作。完整工具矩阵见 `references/mcp-tools.md`。
+Skill 只暴露公开的 34 个 CoreClaw MCP/API v2 操作。完整工具矩阵见 `references/mcp-tools.md`。
 
 ## Agent 工作流
 
@@ -185,8 +186,8 @@ python C:/Users/user/.codex/skills/.system/skill-creator/scripts/quick_validate.
 
 预期契约：
 
-- bundled public OpenAPI operations：28
-- 公开 MCP tools：28
+- bundled public OpenAPI operations：34
+- 公开 MCP tools：34
 - 排除 operations：3
 - skill 文档中不再出现旧 v1 工作流术语
 

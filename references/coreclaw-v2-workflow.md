@@ -1,6 +1,6 @@
 # CoreClaw API v2 Agent Workflow
 
-Source export: `2026-06-29T07:28:48+00:00`
+Source export: `2026-07-06T02:40:43+00:00`
 
 Use this reference when planning a CoreClaw job or explaining the v2 operating model.
 
@@ -14,7 +14,7 @@ Use this reference when planning a CoreClaw job or explaining the v2 operating m
 - `scraper-webui-docs/src/content/docs/api/integration.md`
 - `scraper-webui-docs/src/content/docs/api/error-codes.md`
 - `scraper-webui-docs/src/content/docs/api/callbacks.md`
-- scraper-webui endpoint guide files discovered: 33
+- scraper-webui endpoint guide files discovered: 39
 
 ## Runtime Contract
 

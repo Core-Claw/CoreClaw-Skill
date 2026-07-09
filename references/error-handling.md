@@ -13,6 +13,21 @@ Use this reference when an HTTP call or MCP tool reports a failed CoreClaw reque
 
 | Code | Key | Message |
 | --- | --- | --- |
+| `10000` | SYSTEM_ERROR | internal server error |
+| `11000` | INVALID_ARGUMENT | invalid argument |
+| `11004` | NOT_FOUND | not found |
+| `12001` | UNAUTHORIZED | authentication required |
+| `12002` | INVALID_TOKEN | invalid token |
+| `13000` | RATE_LIMITED | too many requests |
+| `14000` | DATABASE_ERROR | database error |
+| `30001` | INSUFFICIENT_BALANCE | account balance is insufficient |
+| `50001` | WORKER_NOT_FOUND | worker does not exist |
+| `50002` | WORKER_RUN_FAILED | worker run failed |
+| `50003` | WORKER_VERSION_UNAVAILABLE | the worker version is not available |
+| `60001` | TASK_NOT_FOUND | task does not exist |
+| `70001` | RUN_NOT_FOUND | run record does not exist |
+| `70002` | RUN_FAILED | run operation failed |
+| `16000` | NOT_IMPLEMENTED | not implemented |
 
 ## Triage
 

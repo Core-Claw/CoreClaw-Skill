@@ -16,7 +16,12 @@ EXPECTED_TOOL_ORDER = [
     "get_worker",
     "get_worker_input_schema",
     "list_worker_tasks",
+    "get_worker_task",
+    "get_worker_task_input",
     "get_account_info",
+    "create_worker_task",
+    "update_worker_task",
+    "update_worker_task_input",
     "run_worker",
     "run_worker_task",
     "list_worker_runs",
@@ -38,6 +43,7 @@ EXPECTED_TOOL_ORDER = [
     "abort_last_worker_run",
     "abort_worker_run",
     "abort_worker_last_run",
+    "delete_worker_task",
 ]
 
 FORBIDDEN_PATTERNS = [
@@ -116,16 +122,14 @@ def validate_openapi(repo: Path) -> None:
     paths = spec.get("paths", {})
     if spec.get("openapi") != "3.1.0":
         fail("openapi.json must be OpenAPI 3.1.0")
-    if len(paths) != 28:
-        fail(f"openapi.json must contain 28 public paths, found {len(paths)}")
     operations = sum(
         1
         for item in paths.values()
         for method in item
         if method.lower() in {"get", "post", "put", "patch", "delete"}
     )
-    if operations != 28:
-        fail(f"openapi.json must contain 28 public operations, found {operations}")
+    if operations != 34:
+        fail(f"openapi.json must contain 34 public operations, found {operations}")
     if not all(path.startswith("/api/v2/") for path in paths):
         fail("all OpenAPI paths must be /api/v2")
     serialized = json.dumps(spec, ensure_ascii=False)
@@ -182,8 +186,8 @@ def main() -> None:
     validate_agents(repo)
     validate_text(repo)
     print("CoreClaw skill validation passed")
-    print("OpenAPI v2 public operations: 28")
-    print("MCP public tools: 28")
+    print("OpenAPI v2 public operations: 34")
+    print("MCP public tools: 34")
 
 
 if __name__ == "__main__":

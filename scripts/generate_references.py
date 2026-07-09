@@ -18,7 +18,12 @@ PHASES = {
     "get_worker": "Discovery and preflight",
     "get_worker_input_schema": "Discovery and preflight",
     "list_worker_tasks": "Discovery and preflight",
+    "get_worker_task": "Discovery and preflight",
+    "get_worker_task_input": "Discovery and preflight",
     "get_account_info": "Discovery and preflight",
+    "create_worker_task": "Task management",
+    "update_worker_task": "Task management",
+    "update_worker_task_input": "Task management",
     "run_worker": "Execution",
     "run_worker_task": "Execution",
     "list_worker_runs": "Run lookup",
@@ -40,6 +45,7 @@ PHASES = {
     "abort_last_worker_run": "Repeat and control",
     "abort_worker_run": "Repeat and control",
     "abort_worker_last_run": "Repeat and control",
+    "delete_worker_task": "Task management",
 }
 
 
@@ -119,7 +125,7 @@ def public_openapi(openapi: dict, tools: list[Tool]) -> dict:
             spec["paths"].pop(path)
     spec.setdefault("info", {})["description"] = (
         spec.get("info", {}).get("description", "")
-        + "\n\nSkill bundle note: this packaged contract contains only the public skill/MCP surface: 28 operations."
+        + "\n\nSkill bundle note: this packaged contract contains only the public skill/MCP surface: 34 operations."
     ).strip()
     sanitize_public_contract(spec)
     return spec
@@ -161,13 +167,19 @@ def read_webui_docs_summary(webui_docs: Path) -> list[str]:
 
 
 def load_error_table(api_docs: Path) -> list[tuple[str, str, str]]:
+    """Parse the error code table from error-codes.md.
+
+    Handles both `| `10000` |` (code wrapped in backticks) and
+    `| 10000 | `SYSTEM_ERROR` |` (key wrapped in backticks) row shapes.
+    """
     text = (api_docs / "error-codes.md").read_text(encoding="utf-8")
     rows: list[tuple[str, str, str]] = []
     for line in text.splitlines():
-        if line.startswith("| `"):
-            parts = [part.strip().strip("`") for part in line.strip("|").split("|")]
-            if len(parts) == 3 and parts[0].isdigit():
-                rows.append((parts[0], parts[1], parts[2]))
+        if not line.startswith("|"):
+            continue
+        parts = [part.strip().strip("`") for part in line.strip("|").split("|")]
+        if len(parts) == 3 and parts[0].isdigit():
+            rows.append((parts[0], parts[1], parts[2]))
     return rows
 
 
@@ -249,7 +261,7 @@ def write_mcp_tools(refs: Path, tools: list[Tool]) -> None:
     rows = [[str(i), f"`{tool.name}`", tool.phase, f"`{tool.method}`", f"`{tool.path}`"] for i, tool in enumerate(tools, 1)]
     text = f"""# CoreClaw MCP Tool Matrix
 
-Use this reference when choosing the exact MCP tool. The hosted server exposes 28 public tools in workflow order.
+Use this reference when choosing the exact MCP tool. The hosted server exposes {len(tools)} public tools in workflow order.
 
 ## Hosted Endpoint
 
@@ -415,12 +427,12 @@ def generate(args: argparse.Namespace) -> None:
     openapi = json.loads((api_docs / "openapi.json").read_text(encoding="utf-8"))
     manifest = json.loads((api_docs / "manifest.json").read_text(encoding="utf-8"))
 
-    if len(endpoints) != 31:
-        raise RuntimeError(f"expected 31 OpenAPI endpoints, found {len(endpoints)}")
-    if len(tools) != 28:
-        raise RuntimeError(f"expected 28 MCP tools, found {len(tools)}")
-    if len(openapi.get("paths", {})) != 31:
-        raise RuntimeError("OpenAPI path count is not 31")
+    if len(endpoints) != 37:
+        raise RuntimeError(f"expected 37 OpenAPI endpoints, found {len(endpoints)}")
+    if len(tools) != 34:
+        raise RuntimeError(f"expected 34 MCP tools, found {len(tools)}")
+    if len(openapi.get("paths", {})) != 33:
+        raise RuntimeError(f"OpenAPI path count is not 33, got {len(openapi.get('paths', {}))}")
 
     if args.copy_openapi:
         (root / "openapi.json").write_text(
@@ -435,7 +447,7 @@ def generate(args: argparse.Namespace) -> None:
 
     print("Generated CoreClaw references")
     print(f"Source OpenAPI endpoints: {len(endpoints)}")
-    print("Packaged public OpenAPI operations: 28")
+    print(f"Packaged public OpenAPI operations: {len(tools)}")
     print(f"MCP public tools: {len(tools)}")
 
 

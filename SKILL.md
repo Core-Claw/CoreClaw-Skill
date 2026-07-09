@@ -24,7 +24,7 @@ Read the relevant reference file only when the task needs more detail than this 
 
 1. Prefer MCP tools over REST. Use REST only when MCP is unavailable or the user asks for raw HTTP.
 2. Use v2 identifiers: `worker_id`, `worker_task_id`, and `run_id`.
-3. Use only the public 28-operation CoreClaw MCP/API v2 surface bundled with this skill.
+3. Use only the public 34-operation CoreClaw MCP/API v2 surface bundled with this skill.
 4. Always inspect `get_worker_input_schema` before `run_worker`.
 5. Build `run_worker.input_json` from the live schema. Do not invent field names.
 6. Use `run_worker_task` for saved task presets instead of rebuilding their input.
@@ -45,6 +45,7 @@ Use this default sequence:
    - `get_worker` for version, README, and metadata.
    - `get_worker_input_schema` before ad-hoc runs.
    - `list_worker_tasks` before saved task runs.
+   - `get_worker_task` and `get_worker_task_input` to inspect a saved task; `create_worker_task`, `update_worker_task`, `update_worker_task_input`, and `delete_worker_task` to manage saved tasks.
    - `list_proxy_regions` when the schema asks for a proxy region.
    - `get_account_info` when balance, quota, or auth health matters.
 2. Execution:
@@ -62,7 +63,7 @@ Use this default sequence:
    - `rerun_last_worker_run`, `rerun_worker_run`, or `rerun_worker_last_run`.
    - `abort_last_worker_run`, `abort_worker_run`, or `abort_worker_last_run`.
 
-For the exact 28-tool matrix and order, read `references/mcp-tools.md`.
+For the exact 34-tool matrix and order, read `references/mcp-tools.md`.
 
 ## Direct Worker Runs
 
@@ -79,11 +80,11 @@ For MCP `run_worker`, pass schema-aligned business fields as `input_json`, for e
 {"keyword":"coffee","limit":10}
 ```
 
-The MCP server wraps this as upstream `input.parameters.custom`. Use `raw_input_json` only for advanced callers who need to send the complete CoreClaw `input` object.
+The MCP server wraps this as upstream `input.parameters.custom`. The same wrapping applies to `create_worker_task` and `update_worker_task_input` `input_json`. Use `raw_input_json` only for advanced callers who need to send the complete CoreClaw `input` object.
 
 ## Saved Task Runs
 
-Use `list_worker_tasks` when the user wants a saved preset, scheduled configuration, or known task template. If the user provides a `worker_task_id`, call `run_worker_task` directly unless the request needs confirmation or task lookup.
+Use `list_worker_tasks` when the user wants a saved preset, scheduled configuration, or known task template. To inspect a saved task's input, use `get_worker_task` or `get_worker_task_input`. To create, update metadata/schedule, update input, or remove a saved task, use `create_worker_task`, `update_worker_task`, `update_worker_task_input`, or `delete_worker_task` — their `input_json` is wrapped as `input.parameters.custom` automatically. If the user provides a `worker_task_id`, call `run_worker_task` directly unless the request needs confirmation or task lookup.
 
 `run_worker_task` normally needs only execution controls such as `is_async`, `callback_url`, `offset`, and `limit`.
 

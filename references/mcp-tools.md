@@ -1,6 +1,6 @@
 # CoreClaw MCP Tool Matrix
 
-Use this reference when choosing the exact MCP tool. The hosted server exposes 28 public tools in workflow order.
+Use this reference when choosing the exact MCP tool. The hosted server exposes 34 public tools in workflow order.
 
 ## Hosted Endpoint
 
@@ -29,28 +29,34 @@ The hosted MCP server accepts `api-key`, `X-API-Key`, and `Authorization: Bearer
 | 4 | `get_worker` | Discovery and preflight | `GET` | `/api/v2/workers/{workerId}` |
 | 5 | `get_worker_input_schema` | Discovery and preflight | `GET` | `/api/v2/workers/{workerId}/input-schema` |
 | 6 | `list_worker_tasks` | Discovery and preflight | `GET` | `/api/v2/worker-tasks` |
-| 7 | `get_account_info` | Discovery and preflight | `GET` | `/api/v2/users/account` |
-| 8 | `run_worker` | Execution | `POST` | `/api/v2/workers/{workerId}/runs` |
-| 9 | `run_worker_task` | Execution | `POST` | `/api/v2/worker-tasks/{workerTaskId}/runs` |
-| 10 | `list_worker_runs` | Run lookup | `GET` | `/api/v2/worker-runs` |
-| 11 | `get_last_worker_run` | Run lookup | `GET` | `/api/v2/worker-runs/last` |
-| 12 | `get_worker_run` | Run lookup | `GET` | `/api/v2/worker-runs/{runId}` |
-| 13 | `get_worker_last_run` | Run lookup | `GET` | `/api/v2/workers/{workerId}/runs/last` |
-| 14 | `list_last_worker_run_results` | Output retrieval | `GET` | `/api/v2/worker-runs/last/result` |
-| 15 | `export_last_worker_run_results` | Output retrieval | `GET` | `/api/v2/worker-runs/last/export` |
-| 16 | `get_last_worker_run_log` | Output retrieval | `GET` | `/api/v2/worker-runs/last/log` |
-| 17 | `list_worker_run_results` | Output retrieval | `GET` | `/api/v2/worker-runs/{runId}/result` |
-| 18 | `export_worker_run_results` | Output retrieval | `GET` | `/api/v2/worker-runs/{runId}/result/export` |
-| 19 | `get_worker_run_log` | Output retrieval | `GET` | `/api/v2/worker-runs/{runId}/log` |
-| 20 | `list_worker_last_run_results` | Output retrieval | `GET` | `/api/v2/workers/{workerId}/runs/last/result` |
-| 21 | `export_worker_last_run_results` | Output retrieval | `GET` | `/api/v2/workers/{workerId}/runs/last/export` |
-| 22 | `get_worker_last_run_log` | Output retrieval | `GET` | `/api/v2/workers/{workerId}/runs/last/log` |
-| 23 | `rerun_last_worker_run` | Repeat and control | `POST` | `/api/v2/worker-runs/last/rerun` |
-| 24 | `rerun_worker_run` | Repeat and control | `POST` | `/api/v2/worker-runs/{runId}/rerun` |
-| 25 | `rerun_worker_last_run` | Repeat and control | `POST` | `/api/v2/workers/{workerId}/runs/last/rerun` |
-| 26 | `abort_last_worker_run` | Repeat and control | `POST` | `/api/v2/worker-runs/last/abort` |
-| 27 | `abort_worker_run` | Repeat and control | `POST` | `/api/v2/worker-runs/{runId}/abort` |
-| 28 | `abort_worker_last_run` | Repeat and control | `POST` | `/api/v2/workers/{workerId}/runs/last/abort` |
+| 7 | `get_worker_task` | Discovery and preflight | `GET` | `/api/v2/worker-tasks/{workerTaskId}` |
+| 8 | `get_worker_task_input` | Discovery and preflight | `GET` | `/api/v2/worker-tasks/{workerTaskId}/input` |
+| 9 | `get_account_info` | Discovery and preflight | `GET` | `/api/v2/users/account` |
+| 10 | `create_worker_task` | Task management | `POST` | `/api/v2/worker-tasks` |
+| 11 | `update_worker_task` | Task management | `PUT` | `/api/v2/worker-tasks/{workerTaskId}` |
+| 12 | `update_worker_task_input` | Task management | `PUT` | `/api/v2/worker-tasks/{workerTaskId}/input` |
+| 13 | `run_worker` | Execution | `POST` | `/api/v2/workers/{workerId}/runs` |
+| 14 | `run_worker_task` | Execution | `POST` | `/api/v2/worker-tasks/{workerTaskId}/runs` |
+| 15 | `list_worker_runs` | Run lookup | `GET` | `/api/v2/worker-runs` |
+| 16 | `get_last_worker_run` | Run lookup | `GET` | `/api/v2/worker-runs/last` |
+| 17 | `get_worker_run` | Run lookup | `GET` | `/api/v2/worker-runs/{runId}` |
+| 18 | `get_worker_last_run` | Run lookup | `GET` | `/api/v2/workers/{workerId}/runs/last` |
+| 19 | `list_last_worker_run_results` | Output retrieval | `GET` | `/api/v2/worker-runs/last/result` |
+| 20 | `export_last_worker_run_results` | Output retrieval | `GET` | `/api/v2/worker-runs/last/export` |
+| 21 | `get_last_worker_run_log` | Output retrieval | `GET` | `/api/v2/worker-runs/last/log` |
+| 22 | `list_worker_run_results` | Output retrieval | `GET` | `/api/v2/worker-runs/{runId}/result` |
+| 23 | `export_worker_run_results` | Output retrieval | `GET` | `/api/v2/worker-runs/{runId}/result/export` |
+| 24 | `get_worker_run_log` | Output retrieval | `GET` | `/api/v2/worker-runs/{runId}/log` |
+| 25 | `list_worker_last_run_results` | Output retrieval | `GET` | `/api/v2/workers/{workerId}/runs/last/result` |
+| 26 | `export_worker_last_run_results` | Output retrieval | `GET` | `/api/v2/workers/{workerId}/runs/last/export` |
+| 27 | `get_worker_last_run_log` | Output retrieval | `GET` | `/api/v2/workers/{workerId}/runs/last/log` |
+| 28 | `rerun_last_worker_run` | Repeat and control | `POST` | `/api/v2/worker-runs/last/rerun` |
+| 29 | `rerun_worker_run` | Repeat and control | `POST` | `/api/v2/worker-runs/{runId}/rerun` |
+| 30 | `rerun_worker_last_run` | Repeat and control | `POST` | `/api/v2/workers/{workerId}/runs/last/rerun` |
+| 31 | `abort_last_worker_run` | Repeat and control | `POST` | `/api/v2/worker-runs/last/abort` |
+| 32 | `abort_worker_run` | Repeat and control | `POST` | `/api/v2/worker-runs/{runId}/abort` |
+| 33 | `abort_worker_last_run` | Repeat and control | `POST` | `/api/v2/workers/{workerId}/runs/last/abort` |
+| 34 | `delete_worker_task` | Task management | `DELETE` | `/api/v2/worker-tasks/{workerTaskId}` |
 
 ## Selection Notes
 

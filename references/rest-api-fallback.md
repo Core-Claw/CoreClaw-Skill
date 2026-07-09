@@ -33,6 +33,12 @@ The API also supports the legacy `api-key` header and `?token=` query parameter.
 | worker-runs | `GET` | `/api/v2/worker-runs/{runId}/result` | List worker run results | BearerAuth OR QueryTokenAuth |
 | worker-runs | `GET` | `/api/v2/worker-runs/{runId}/result/export` | Export worker run results | BearerAuth OR QueryTokenAuth |
 | worker-tasks | `GET` | `/api/v2/worker-tasks` | List worker tasks | BearerAuth OR QueryTokenAuth |
+| worker-tasks | `POST` | `/api/v2/worker-tasks` | Create worker task | BearerAuth OR QueryTokenAuth |
+| worker-tasks | `GET` | `/api/v2/worker-tasks/{workerTaskId}` | Get worker task | BearerAuth OR QueryTokenAuth |
+| worker-tasks | `PUT` | `/api/v2/worker-tasks/{workerTaskId}` | Update worker task | BearerAuth OR QueryTokenAuth |
+| worker-tasks | `DELETE` | `/api/v2/worker-tasks/{workerTaskId}` | Delete worker task | BearerAuth OR QueryTokenAuth |
+| worker-tasks | `GET` | `/api/v2/worker-tasks/{workerTaskId}/input` | Get worker task input | BearerAuth OR QueryTokenAuth |
+| worker-tasks | `PUT` | `/api/v2/worker-tasks/{workerTaskId}/input` | Update worker task input | BearerAuth OR QueryTokenAuth |
 | worker-tasks | `POST` | `/api/v2/worker-tasks/{workerTaskId}/runs` | Run worker task | BearerAuth OR QueryTokenAuth |
 | workers | `GET` | `/api/v2/workers` | List current user workers | BearerAuth OR QueryTokenAuth |
 | workers | `GET` | `/api/v2/workers/{workerId}` | Get worker detail | BearerAuth OR QueryTokenAuth |
