@@ -83,6 +83,24 @@ curl -s -X POST "https://openapi.coreclaw.com/api/v2/worker-tasks/$WORKER_TASK_I
   --data '{"is_async":true}'
 ```
 
+Create a saved worker task (input must be nested under `input.parameters.custom`):
+
+```bash
+curl -s -X POST "https://openapi.coreclaw.com/api/v2/worker-tasks" \
+  -H "Authorization: Bearer $CORECLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  --data '{"worker_id":"$WORKER_ID","title":"Daily Coffee Search","input":{"parameters":{"custom":{"keyword":"coffee","limit":10}}}}'
+```
+
+Update a saved task's input payload (input must be nested under `input.parameters.custom`):
+
+```bash
+curl -s -X PUT "https://openapi.coreclaw.com/api/v2/worker-tasks/$WORKER_TASK_ID/input" \
+  -H "Authorization: Bearer $CORECLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  --data '{"input":{"parameters":{"custom":{"keyword":"tea","limit":5}}}}'
+```
+
 Poll a run:
 
 ```bash

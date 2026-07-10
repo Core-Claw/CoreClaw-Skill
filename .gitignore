@@ -1,0 +1,18 @@
+# Packaging output
+dist/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Local environment / secrets
+.env
+.env.local
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

@@ -118,7 +118,11 @@ def validate_skill_md(repo: Path) -> None:
 
 
 def validate_openapi(repo: Path) -> None:
-    spec = json.loads(read_text(repo / "openapi.json"))
+    raw = read_text(repo / "openapi.json")
+    try:
+        spec = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        fail(f"openapi.json is not valid JSON: {exc}")
     paths = spec.get("paths", {})
     if spec.get("openapi") != "3.1.0":
         fail("openapi.json must be OpenAPI 3.1.0")
@@ -136,6 +140,85 @@ def validate_openapi(repo: Path) -> None:
     for pattern in FORBIDDEN_PATTERNS:
         if pattern in serialized:
             fail(f"openapi.json contains forbidden term: {pattern}")
+    validate_no_duplicate_json_keys(raw)
+    validate_run_worker_input_examples(spec)
+
+
+def validate_no_duplicate_json_keys(raw: str) -> None:
+    """json.loads silently keeps the last value on duplicate object keys, so
+    scan the raw text for the actual defect. This catches generator sanitize
+    regressions like {"run_status":"succeeded","run_status":"succeeded"}.
+    """
+    # Tokenize JSON object keys and track open object scopes so we only flag
+    # the same key appearing twice inside the same object.
+    stack: list[set[str]] = []
+    i = 0
+    n = len(raw)
+    while i < n:
+        ch = raw[i]
+        if ch == '"':
+            # Read the full string token.
+            j = i + 1
+            while j < n:
+                c = raw[j]
+                if c == "\\":
+                    j += 2
+                    continue
+                if c == '"':
+                    break
+                j += 1
+            token = raw[i + 1 : j]
+            # Peek past the closing quote to see whether this string is a key
+            # (followed by ':') — keys are what we deduplicate within a scope.
+            k = j + 1
+            while k < n and raw[k] in " \t\r\n":
+                k += 1
+            is_key = k < n and raw[k] == ":"
+            if is_key and stack:
+                if token in stack[-1]:
+                    fail(f"openapi.json has duplicate object key: {token!r}")
+                stack[-1].add(token)
+            i = j + 1
+            continue
+        if ch == "{":
+            stack.append(set())
+            i += 1
+            continue
+        if ch == "}":
+            if stack:
+                stack.pop()
+            i += 1
+            continue
+        i += 1
+
+
+def validate_run_worker_input_examples(spec: dict) -> None:
+    """run_worker request-body examples must nest business input under
+    input.parameters.custom. A flat input ({"input":{"keyword":"coffee"}})
+    makes a saved task un-runnable upstream ("Keyword is required"), so guard
+    against the upstream flat-example shape sneaking back into the bundle.
+    """
+    runs_post = spec.get("paths", {}).get("/api/v2/workers/{workerId}/runs", {}).get("post", {})
+    content = runs_post.get("requestBody", {}).get("content", {})
+    for media in content.values():
+        for name, example in media.get("examples", {}).items():
+            value = example.get("value")
+            if not isinstance(value, dict):
+                continue
+            input_field = value.get("input")
+            if not isinstance(input_field, dict):
+                continue
+            if "parameters" not in input_field:
+                fail(
+                    f"run_worker example {name!r} must nest input under "
+                    f"input.parameters.custom, got flat input: {input_field!r}"
+                )
+            custom = input_field.get("parameters", {}).get("custom")
+            if not isinstance(custom, dict):
+                fail(
+                    f"run_worker example {name!r} has input.parameters.custom "
+                    f"missing or not an object"
+                )
 
 
 def validate_references(repo: Path) -> None:

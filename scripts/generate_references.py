@@ -128,10 +128,19 @@ def public_openapi(openapi: dict, tools: list[Tool]) -> dict:
         + "\n\nSkill bundle note: this packaged contract contains only the public skill/MCP surface: 34 operations."
     ).strip()
     sanitize_public_contract(spec)
+    fix_run_worker_input_examples(spec)
     return spec
 
 
 def sanitize_public_contract(value: object) -> None:
+    """Remove legacy v1 identifiers and align terminology with the public v2 surface.
+
+    This walks the entire spec (dicts and lists) and rewrites string values. It
+    drops `scraper_slug`, `page_index`, `page_size` keys, strips `run_slug`
+    placeholders from callback examples (the skill uses `run_id`, not
+    `run_slug`), and normalizes the WORKER_VERSION_UNAVAILABLE wording. Run
+    mutably in place.
+    """
     if isinstance(value, dict):
         for key in list(value):
             if key in {"scraper_slug", "page_index", "page_size"}:
@@ -139,8 +148,7 @@ def sanitize_public_contract(value: object) -> None:
                 continue
             child = value[key]
             if isinstance(child, str):
-                child = child.replace('"scraper_slug":"run_slug",', "")
-                child = child.replace('{"run_slug":"run_slug",', '{"run_status":"succeeded",')
+                child = _strip_run_slug_placeholder(child)
                 child = child.replace("WORKER_VERSION_UNAVAILABLE", "WORKER_UNAVAILABLE")
                 child = child.replace("the worker version is not available", "the worker is not available")
                 value[key] = child
@@ -149,6 +157,40 @@ def sanitize_public_contract(value: object) -> None:
     elif isinstance(value, list):
         for child in value:
             sanitize_public_contract(child)
+
+
+def _strip_run_slug_placeholder(s: str) -> str:
+    # The upstream callback example embeds {"run_slug":"run_slug","run_status":...}.
+    # The skill surface uses `run_id`, so drop the run_slug pair entirely instead
+    # of rewriting it (rewriting introduced a duplicate run_status key).
+    return re.sub(r'"run_slug"\s*:\s*"run_slug"\s*,\s*', "", s)
+
+
+def fix_run_worker_input_examples(spec: dict) -> None:
+    """Rewrite run_worker request-body examples so `input` is nested.
+
+    The upstream OpenAPI export ships run_worker examples with a flat
+    `input` object ({"keyword":"coffee","limit":10}). The real CoreClaw v2
+    upstream expects business fields under `input.parameters.custom`; a flat
+    input makes a created/saved task un-runnable ("Keyword is required"). The
+    MCP server already wraps `input_json` into `input.parameters.custom`, and
+    rest-api-fallback.md shows the nested curl form. Align the bundled example
+    so users copying it hit the same correct shape. Mutates `spec` in place.
+    """
+    runs_post = spec.get("paths", {}).get("/api/v2/workers/{workerId}/runs", {}).get("post", {})
+    content = runs_post.get("requestBody", {}).get("content", {})
+    for media in content.values():
+        for example in media.get("examples", {}).values():
+            value = example.get("value")
+            if not isinstance(value, dict):
+                continue
+            input_field = value.get("input")
+            # Already nested (parameters.custom) or absent — leave it alone.
+            if not isinstance(input_field, dict):
+                continue
+            if "parameters" in input_field:
+                continue
+            value["input"] = {"parameters": {"custom": input_field}}
 
 
 def read_webui_docs_summary(webui_docs: Path) -> list[str]:
@@ -354,6 +396,24 @@ curl -s -X POST "https://openapi.coreclaw.com/api/v2/worker-tasks/$WORKER_TASK_I
   --data '{{"is_async":true}}'
 ```
 
+Create a saved worker task (input must be nested under `input.parameters.custom`):
+
+```bash
+curl -s -X POST "https://openapi.coreclaw.com/api/v2/worker-tasks" \\
+  -H "Authorization: Bearer $CORECLAW_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  --data '{{"worker_id":"$WORKER_ID","title":"Daily Coffee Search","input":{{"parameters":{{"custom":{{"keyword":"coffee","limit":10}}}}}}}}'
+```
+
+Update a saved task's input payload (input must be nested under `input.parameters.custom`):
+
+```bash
+curl -s -X PUT "https://openapi.coreclaw.com/api/v2/worker-tasks/$WORKER_TASK_ID/input" \\
+  -H "Authorization: Bearer $CORECLAW_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  --data '{{"input":{{"parameters":{{"custom":{{"keyword":"tea","limit":5}}}}}}}}'
+```
+
 Poll a run:
 
 ```bash
@@ -427,6 +487,13 @@ def generate(args: argparse.Namespace) -> None:
     openapi = json.loads((api_docs / "openapi.json").read_text(encoding="utf-8"))
     manifest = json.loads((api_docs / "manifest.json").read_text(encoding="utf-8"))
 
+    # Three source counts for the upstream export (sibling exported-api-docs):
+    # - 37 endpoints.csv rows (operations, incl. 3 excluded internal ops)
+    # - 34 MCP tools (public operations only; the 3 excluded are internal
+    #   worker-version create/update and worker-internal detail)
+    # - 33 unique OpenAPI paths (some paths host multiple operations, so the
+    #   37→34 operation delta and the 33→30 packaged-path delta are different
+    #   things; the packaged public spec ends up with 30 paths)
     if len(endpoints) != 37:
         raise RuntimeError(f"expected 37 OpenAPI endpoints, found {len(endpoints)}")
     if len(tools) != 34:

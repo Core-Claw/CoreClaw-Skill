@@ -29,6 +29,7 @@ This repository packages the CoreClaw OpenAPI v2 worker workflow as an AI-agent 
 - API namespace: `/api/v2`
 - Environment variable for REST fallback: `CORECLAW_API_KEY`
 - Preferred REST auth: `Authorization: Bearer $CORECLAW_API_KEY`
+- Scripts require Python 3.9+ (standard library only; no third-party packages).
 
 ## Use The Skill
 
@@ -102,7 +103,13 @@ Before packaging, validate the repository:
 
 ```bash
 python scripts/validate_skill.py
-python C:/Users/user/.codex/skills/.system/skill-creator/scripts/quick_validate.py .
+```
+
+If the Codex skill-creator toolchain is installed, its validator can also be run (optional, machine-dependent path):
+
+```bash
+python "$USERPROFILE/.codex/skills/.system/skill-creator/scripts/quick_validate.py" .   # Windows
+python "$HOME/.codex/skills/.system/skill-creator/scripts/quick_validate.py" .           # macOS/Linux
 ```
 
 Create a zip package from the repository root on Windows:
@@ -181,8 +188,9 @@ Validate the package:
 
 ```bash
 python scripts/validate_skill.py
-python C:/Users/user/.codex/skills/.system/skill-creator/scripts/quick_validate.py .
 ```
+
+If the Codex skill-creator toolchain is installed, its `quick_validate.py` can also be run (optional, machine-dependent path; see the Package The Skill section).
 
 Expected contract:
 

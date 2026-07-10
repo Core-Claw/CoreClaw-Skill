@@ -305,7 +305,7 @@
     }
   },
   "info": {
-    "description": "External open API.\n\n## Callback Notifications\n\nWhen a run request includes `callback_url`, this service pushes a `POST` request to the requester after the run status changes or finishes. The callback request body is:\n\n```json\n{\"run_status\":\"succeeded\",\"run_status\":\"succeeded\",\"error_message\":\"\",\"execution_start_timestamp\":100,\"execution_end_timestamp\":200,\"running_duration\":100,\"result_count\":3,\"result_message\":\"done\"}\n```\n\n## Error Codes\n\n| Code | Key | Message |\n| --- | --- | --- |\n| 10000 | SYSTEM_ERROR | internal server error |\n| 11000 | INVALID_ARGUMENT | invalid argument |\n| 11004 | NOT_FOUND | not found |\n| 12001 | UNAUTHORIZED | authentication required |\n| 12002 | INVALID_TOKEN | invalid token |\n| 13000 | RATE_LIMITED | too many requests |\n| 14000 | DATABASE_ERROR | database error |\n| 30001 | INSUFFICIENT_BALANCE | account balance is insufficient |\n| 50001 | WORKER_NOT_FOUND | worker does not exist |\n| 50002 | WORKER_RUN_FAILED | worker run failed |\n| 50003 | WORKER_UNAVAILABLE | the worker is not available |\n| 60001 | TASK_NOT_FOUND | task does not exist |\n| 70001 | RUN_NOT_FOUND | run record does not exist |\n| 70002 | RUN_FAILED | run operation failed |\n| 16000 | NOT_IMPLEMENTED | not implemented |\n\n\nSkill bundle note: this packaged contract contains only the public skill/MCP surface: 34 operations.",
+    "description": "External open API.\n\n## Callback Notifications\n\nWhen a run request includes `callback_url`, this service pushes a `POST` request to the requester after the run status changes or finishes. The callback request body is:\n\n```json\n{\"run_status\":\"succeeded\",\"error_message\":\"\",\"execution_start_timestamp\":100,\"execution_end_timestamp\":200,\"running_duration\":100,\"result_count\":3,\"result_message\":\"done\"}\n```\n\n## Error Codes\n\n| Code | Key | Message |\n| --- | --- | --- |\n| 10000 | SYSTEM_ERROR | internal server error |\n| 11000 | INVALID_ARGUMENT | invalid argument |\n| 11004 | NOT_FOUND | not found |\n| 12001 | UNAUTHORIZED | authentication required |\n| 12002 | INVALID_TOKEN | invalid token |\n| 13000 | RATE_LIMITED | too many requests |\n| 14000 | DATABASE_ERROR | database error |\n| 30001 | INSUFFICIENT_BALANCE | account balance is insufficient |\n| 50001 | WORKER_NOT_FOUND | worker does not exist |\n| 50002 | WORKER_RUN_FAILED | worker run failed |\n| 50003 | WORKER_UNAVAILABLE | the worker is not available |\n| 60001 | TASK_NOT_FOUND | task does not exist |\n| 70001 | RUN_NOT_FOUND | run record does not exist |\n| 70002 | RUN_FAILED | run operation failed |\n| 16000 | NOT_IMPLEMENTED | not implemented |\n\n\nSkill bundle note: this packaged contract contains only the public skill/MCP surface: 34 operations.",
     "title": "coreclaw-web-openapi",
     "version": "1.0.0"
   },
@@ -5635,8 +5635,12 @@
                   "value": {
                     "callback_url": "https://client.example.com/openapi/callback",
                     "input": {
-                      "keyword": "coffee",
-                      "limit": 10
+                      "parameters": {
+                        "custom": {
+                          "keyword": "coffee",
+                          "limit": 10
+                        }
+                      }
                     },
                     "is_async": true,
                     "limit": 20,
@@ -5648,8 +5652,12 @@
                   "summary": "Synchronous run",
                   "value": {
                     "input": {
-                      "keyword": "coffee",
-                      "limit": 10
+                      "parameters": {
+                        "custom": {
+                          "keyword": "coffee",
+                          "limit": 10
+                        }
+                      }
                     },
                     "is_async": false,
                     "limit": 20,
