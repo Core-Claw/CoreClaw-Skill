@@ -64,4 +64,5 @@ The hosted MCP server accepts `api-key`, `X-API-Key`, and `Authorization: Bearer
 - Use private worker tools when the user asks for their own workers.
 - Use worker-specific last-run tools only when a known `worker_id` scopes the request.
 - Use account-level last-run tools only when the user means the current account's latest run.
+- The `/last` tools (`get_last_worker_run`, `get_worker_last_run`, `list_last_worker_run_results`, `export_last_worker_run_results`, `get_last_worker_run_log`, and the worker-level `/last` variants) can briefly return stale state. When you need authoritative status or results, prefer the runId-specific tools (`get_worker_run`, `list_worker_run_results`, `export_worker_run_results`, `get_worker_run_log`) with a saved `run_id`.
 - Prefer export tools for file delivery; prefer result-list tools for previews and analysis.

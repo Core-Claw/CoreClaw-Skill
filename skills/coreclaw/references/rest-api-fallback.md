@@ -51,6 +51,12 @@ The API also supports the legacy `api-key` header and `?token=` query parameter.
 | worker-runs | `POST` | `/api/v2/workers/{workerId}/runs/last/rerun` | Rerun worker last run | BearerAuth OR QueryTokenAuth |
 | worker-runs | `GET` | `/api/v2/workers/{workerId}/runs/last/result` | List worker last run results | BearerAuth OR QueryTokenAuth |
 
+## `/last` Endpoints and Pagination
+
+The `/last` endpoints (`/worker-runs/last`, `/workers/{workerId}/runs/last`, and their `result`/`export`/`log` variants) can briefly return stale state. When you need authoritative status or results, prefer the runId-specific endpoints (`/worker-runs/{runId}`, `/worker-runs/{runId}/result`, `/worker-runs/{runId}/log`).
+
+List and result endpoints paginate with `offset` (default `0`) and `limit` (default `20`, max `100`). Upstream interprets `(offset, limit)` as 1-based paging rather than a true absolute row offset, so `offset` only equals a real row offset when `offset % limit == 0`. Align `offset` to `limit` multiples (e.g. `0`, `20`, `40`, …) to page deterministically; otherwise a non-aligned `offset` returns the page that contains that row, not the row itself.
+
 ## Curl Patterns
 
 List store workers:
@@ -115,7 +121,7 @@ curl -s "https://openapi.coreclaw.com/api/v2/worker-runs/$RUN_ID/result?offset=0
   -H "Authorization: Bearer $CORECLAW_API_KEY"
 ```
 
-Export results:
+Export results (`format` accepts `csv`, `json`, `jsonl`, `xlsx`, `xls`, `xml`, `html`, or `rss`, case-insensitive; default `csv`; `filter_keys` is a comma-separated field allowlist):
 
 ```bash
 curl -s "https://openapi.coreclaw.com/api/v2/worker-runs/$RUN_ID/result/export?format=csv&filter_keys=title%2Caddress" \

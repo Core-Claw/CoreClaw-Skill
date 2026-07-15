@@ -52,9 +52,10 @@ Use this default sequence:
    - `run_worker` for ad-hoc input.
    - `run_worker_task` for saved task presets.
 3. Run lookup:
-   - `get_worker_run` for a known `run_id`.
+   - `get_worker_run` for a known `run_id` (preferred — authoritative).
    - `get_last_worker_run` for account-level latest run.
    - `get_worker_last_run` for latest run scoped to a `worker_id`.
+   - The `/last` tools can briefly return stale state. If a `/last` result disagrees with expectations, re-check via `get_worker_run(run_id)`.
 4. Output:
    - `list_worker_run_results`, `list_last_worker_run_results`, or `list_worker_last_run_results` for previews.
    - `export_worker_run_results`, `export_last_worker_run_results`, or `export_worker_last_run_results` for downloads.
@@ -92,7 +93,7 @@ Use `list_worker_tasks` when the user wants a saved preset, scheduled configurat
 
 Use result-list tools for inspecting records in the conversation. Use export tools when the user asks for a file, a large dataset, CSV, JSON, or all rows.
 
-Pagination uses zero-based `offset` and `limit` capped at `100` for list/result endpoints.
+Pagination uses `offset` and `limit` (default `20`, max `100`) on list/result endpoints. The MCP server applies a transparent compensation layer so MCP callers page normally; REST callers should align `offset` to `limit` multiples because upstream interprets `(offset, limit)` as 1-based paging rather than a true absolute row offset.
 
 ## Error Handling
 
