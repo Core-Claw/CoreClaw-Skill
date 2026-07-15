@@ -479,8 +479,8 @@ def generate(args: argparse.Namespace) -> None:
     api_docs = (args.api_docs or workspace / "exported-api-docs").resolve()
     mcp_server = (args.mcp_server or workspace / "coreclaw-mcp-server").resolve()
     webui_docs = (args.webui_docs or workspace / "scraper-webui-docs" / "src" / "content" / "docs" / "api").resolve()
-    refs = root / "references"
-    refs.mkdir(exist_ok=True)
+    refs = root / "skills" / "coreclaw" / "references"
+    refs.mkdir(exist_ok=True, parents=True)
 
     endpoints = read_endpoints(api_docs)
     tools = read_mcp_tools(mcp_server)

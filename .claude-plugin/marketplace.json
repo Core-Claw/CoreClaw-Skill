@@ -1,0 +1,8 @@
+{
+  "name": "coreclaw-skill",
+  "description": "CoreClaw Agent Skill — operate CoreClaw API v2 / CoreClaw MCP (discover workers, run jobs, poll, export, logs, rerun, abort).",
+  "owner": { "name": "Core-Claw" },
+  "plugins": [
+    { "name": "coreclaw", "source": "./" }
+  ]
+}

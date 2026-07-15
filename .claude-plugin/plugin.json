@@ -1,0 +1,9 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "coreclaw",
+  "description": "Operate CoreClaw API v2 / CoreClaw MCP: discover workers, run workers/tasks, poll, export, logs, rerun, abort.",
+  "author": {
+    "name": "Core-Claw",
+    "url": "https://github.com/Core-Claw"
+  }
+}

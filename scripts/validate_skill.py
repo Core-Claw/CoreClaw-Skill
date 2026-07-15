@@ -56,13 +56,13 @@ FORBIDDEN_PATTERNS = [
 ]
 
 DOC_FILES = [
-    "SKILL.md",
+    "skills/coreclaw/SKILL.md",
     "README.md",
     "README.zh-CN.md",
-    "references/coreclaw-v2-workflow.md",
-    "references/mcp-tools.md",
-    "references/rest-api-fallback.md",
-    "references/error-handling.md",
+    "skills/coreclaw/references/coreclaw-v2-workflow.md",
+    "skills/coreclaw/references/mcp-tools.md",
+    "skills/coreclaw/references/rest-api-fallback.md",
+    "skills/coreclaw/references/error-handling.md",
     "agents/openai.yaml",
 ]
 
@@ -100,7 +100,7 @@ def parse_frontmatter(skill: str) -> dict[str, str]:
 
 
 def validate_skill_md(repo: Path) -> None:
-    text = read_text(repo / "SKILL.md")
+    text = read_text(repo / "skills" / "coreclaw" / "SKILL.md")
     frontmatter = parse_frontmatter(text)
     if set(frontmatter) != {"name", "description"}:
         fail("SKILL.md frontmatter must contain only name and description")
@@ -226,7 +226,7 @@ def validate_references(repo: Path) -> None:
         if not (repo / name).is_file():
             fail(f"missing file: {name}")
 
-    mcp = read_text(repo / "references" / "mcp-tools.md")
+    mcp = read_text(repo / "skills" / "coreclaw" / "references" / "mcp-tools.md")
     positions: list[int] = []
     for tool in EXPECTED_TOOL_ORDER:
         pos = mcp.find(f"`{tool}`")

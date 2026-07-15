@@ -8,15 +8,21 @@ This repository packages the CoreClaw OpenAPI v2 worker workflow as an AI-agent 
 
 ```text
 .
-|-- SKILL.md
+|-- .claude-plugin/
+|   |-- marketplace.json
+|   `-- plugin.json
+|-- .mcp.json
 |-- agents/
 |   `-- openai.yaml
 |-- openapi.json
-|-- references/
-|   |-- coreclaw-v2-workflow.md
-|   |-- error-handling.md
-|   |-- mcp-tools.md
-|   `-- rest-api-fallback.md
+|-- skills/
+|   `-- coreclaw/
+|       |-- SKILL.md
+|       `-- references/
+|           |-- coreclaw-v2-workflow.md
+|           |-- error-handling.md
+|           |-- mcp-tools.md
+|           `-- rest-api-fallback.md
 `-- scripts/
     |-- generate_references.py
     `-- validate_skill.py
@@ -41,6 +47,34 @@ Use $coreclaw to find a worker for coffee shop data, inspect its input schema, r
 
 The skill provides the operating procedure. For real CoreClaw actions, configure the CoreClaw MCP server or set `CORECLAW_API_KEY` for REST fallback.
 
+## Install as a Claude Code Plugin (Recommended)
+
+Add this repository as a plugin marketplace and install in two commands:
+
+```bash
+claude plugin marketplace add Core-Claw/CoreClaw-Skill
+claude plugin install coreclaw@coreclaw-skill
+```
+
+Or inside a Claude Code session:
+
+```text
+/plugin marketplace add Core-Claw/CoreClaw-Skill
+/plugin install coreclaw@coreclaw-skill
+```
+
+The plugin bundles the CoreClaw MCP server (`.mcp.json`) and the skill. After install, set your API token once so the MCP server can authenticate:
+
+```bash
+export CORECLAW_API_KEY="your-coreclaw-token"        # macOS/Linux
+```
+
+```powershell
+$env:CORECLAW_API_KEY = "your-coreclaw-token"        # Windows PowerShell
+```
+
+When invoked through the plugin, the skill is namespaced as `/coreclaw-skill:coreclaw`.
+
 ## Configure MCP
 
 Use the hosted MCP server when the agent supports MCP:
@@ -62,39 +96,49 @@ The server accepts `api-key`, `X-API-Key`, or `Authorization: Bearer <token>` fr
 
 ## Import Into Codex Desktop
 
-Clone this repository directly into the Codex skills directory:
+The Codex skill layout requires `SKILL.md` at `<skills-dir>/coreclaw/SKILL.md`. This repo keeps the skill under `skills/coreclaw/`, so clone it to a working location and expose that subfolder to Codex:
 
 ```powershell
-New-Item -ItemType Directory -Force "$env:USERPROFILE\.codex\skills"
-git clone https://github.com/Core-Claw/CoreClaw-Skill.git "$env:USERPROFILE\.codex\skills\coreclaw"
+git clone https://github.com/Core-Claw/CoreClaw-Skill.git "$env:USERPROFILE\CoreClaw-Skill"
+New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\.codex\skills\coreclaw" -Target "$env:USERPROFILE\CoreClaw-Skill\skills\coreclaw"
 ```
 
-Then restart Codex Desktop. The folder name should be `coreclaw`, and `SKILL.md` must be at the folder root:
+Then restart Codex Desktop. Codex sees the skill at:
 
 ```text
 %USERPROFILE%\.codex\skills\coreclaw\SKILL.md
 ```
 
-If Codex Desktop offers an import-from-folder or import-from-zip UI, select the folder or archive whose root contains `SKILL.md`. Do not import a parent folder that contains `CoreClaw-Skill` as a nested directory unless the UI explicitly handles nested archives.
+If Codex Desktop offers an import-from-folder or import-from-zip UI, point it at the `skills/coreclaw` folder (whose root contains `SKILL.md`). Do not import the repository root.
 
 Update an existing Codex Desktop install:
 
 ```powershell
-cd "$env:USERPROFILE\.codex\skills\coreclaw"
+cd "$env:USERPROFILE\CoreClaw-Skill"
 git pull
 ```
 
 Restart Codex Desktop after updating.
 
+## Use as a Standalone Claude Code Skill
+
+Clone directly into the Claude Code skills directory (no manifest, no install step):
+
+```bash
+git clone https://github.com/Core-Claw/CoreClaw-Skill.git ~/.claude/skills/coreclaw
+```
+
+The skill loads as `/coreclaw` (no namespace). The bundled `.mcp.json` only auto-registers the CoreClaw MCP server when the repo is installed as a plugin; for standalone use you must configure the MCP server or set `CORECLAW_API_KEY` yourself (see [Configure MCP](#configure-mcp) and [REST Fallback](#rest-fallback)).
+
 ## Import Into Other Skill-Aware Agents
 
-Use the same structural rule for Claude Code or other clients: place the whole folder in the agent's skills directory with `SKILL.md` at the skill root. If the client supports explicit skill invocation, use `$coreclaw`.
+For clients other than Claude Code and Codex Desktop, use the same structural rule: place the `skills/coreclaw` folder in the agent's skills directory with `SKILL.md` at the skill root. If the client supports explicit skill invocation, use `$coreclaw`.
 
 If the client does not auto-discover skills, attach or reference:
 
-- `SKILL.md`
+- `skills/coreclaw/SKILL.md`
 - `agents/openai.yaml`
-- `references/`
+- `skills/coreclaw/references/`
 - `openapi.json`
 
 ## Package The Skill
@@ -116,7 +160,7 @@ Create a zip package from the repository root on Windows:
 
 ```powershell
 New-Item -ItemType Directory -Force dist
-$files = @("SKILL.md", "agents", "openapi.json", "references", "scripts", "LICENSE", "README.md", "README.zh-CN.md")
+$files = @("skills", "agents", "openapi.json", ".mcp.json", ".claude-plugin", "scripts", "LICENSE", "README.md", "README.zh-CN.md")
 Compress-Archive -Path $files -DestinationPath dist/coreclaw-skill.zip -Force
 ```
 
@@ -124,10 +168,10 @@ Create a zip package on macOS/Linux:
 
 ```bash
 mkdir -p dist
-zip -r dist/coreclaw-skill.zip SKILL.md agents openapi.json references scripts LICENSE README.md README.zh-CN.md -x "*/__pycache__/*" "*.pyc"
+zip -r dist/coreclaw-skill.zip skills agents openapi.json .mcp.json .claude-plugin scripts LICENSE README.md README.zh-CN.md -x "*/__pycache__/*" "*.pyc"
 ```
 
-The archive root must contain `SKILL.md`. Validate the extracted package before distribution:
+The archive root must contain `.claude-plugin/` and `skills/coreclaw/SKILL.md`. Validate the extracted package before distribution:
 
 ```bash
 python scripts/validate_skill.py
