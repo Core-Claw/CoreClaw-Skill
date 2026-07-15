@@ -1,6 +1,6 @@
 # CoreClaw MCP Tool Matrix
 
-Use this reference when choosing the exact MCP tool. The hosted server exposes 34 public tools in workflow order.
+Use this reference when choosing the exact MCP tool. The hosted server exposes 37 public tools in workflow order: 34 map 1:1 to public API v2 operations, and 3 are MCP-layer orchestration tools that compose those operations with custom handlers (see rows 15, 19, 20 below).
 
 ## Hosted Endpoint
 
@@ -37,26 +37,29 @@ The hosted MCP server accepts `api-key`, `X-API-Key`, and `Authorization: Bearer
 | 12 | `update_worker_task_input` | Task management | `PUT` | `/api/v2/worker-tasks/{workerTaskId}/input` |
 | 13 | `run_worker` | Execution | `POST` | `/api/v2/workers/{workerId}/runs` |
 | 14 | `run_worker_task` | Execution | `POST` | `/api/v2/worker-tasks/{workerTaskId}/runs` |
-| 15 | `list_worker_runs` | Run lookup | `GET` | `/api/v2/worker-runs` |
-| 16 | `get_last_worker_run` | Run lookup | `GET` | `/api/v2/worker-runs/last` |
-| 17 | `get_worker_run` | Run lookup | `GET` | `/api/v2/worker-runs/{runId}` |
-| 18 | `get_worker_last_run` | Run lookup | `GET` | `/api/v2/workers/{workerId}/runs/last` |
-| 19 | `list_last_worker_run_results` | Output retrieval | `GET` | `/api/v2/worker-runs/last/result` |
-| 20 | `export_last_worker_run_results` | Output retrieval | `GET` | `/api/v2/worker-runs/last/export` |
-| 21 | `get_last_worker_run_log` | Output retrieval | `GET` | `/api/v2/worker-runs/last/log` |
-| 22 | `list_worker_run_results` | Output retrieval | `GET` | `/api/v2/worker-runs/{runId}/result` |
-| 23 | `export_worker_run_results` | Output retrieval | `GET` | `/api/v2/worker-runs/{runId}/result/export` |
-| 24 | `get_worker_run_log` | Output retrieval | `GET` | `/api/v2/worker-runs/{runId}/log` |
-| 25 | `list_worker_last_run_results` | Output retrieval | `GET` | `/api/v2/workers/{workerId}/runs/last/result` |
-| 26 | `export_worker_last_run_results` | Output retrieval | `GET` | `/api/v2/workers/{workerId}/runs/last/export` |
-| 27 | `get_worker_last_run_log` | Output retrieval | `GET` | `/api/v2/workers/{workerId}/runs/last/log` |
-| 28 | `rerun_last_worker_run` | Repeat and control | `POST` | `/api/v2/worker-runs/last/rerun` |
-| 29 | `rerun_worker_run` | Repeat and control | `POST` | `/api/v2/worker-runs/{runId}/rerun` |
-| 30 | `rerun_worker_last_run` | Repeat and control | `POST` | `/api/v2/workers/{workerId}/runs/last/rerun` |
-| 31 | `abort_last_worker_run` | Repeat and control | `POST` | `/api/v2/worker-runs/last/abort` |
-| 32 | `abort_worker_run` | Repeat and control | `POST` | `/api/v2/worker-runs/{runId}/abort` |
-| 33 | `abort_worker_last_run` | Repeat and control | `POST` | `/api/v2/workers/{workerId}/runs/last/abort` |
-| 34 | `delete_worker_task` | Task management | `DELETE` | `/api/v2/worker-tasks/{workerTaskId}` |
+| 15 | `run_workers_batch` | Execution (orchestration) | `POST` | `/api/v2/workers/batch/runs` (synthetic) |
+| 16 | `list_worker_runs` | Run lookup | `GET` | `/api/v2/worker-runs` |
+| 17 | `get_last_worker_run` | Run lookup | `GET` | `/api/v2/worker-runs/last` |
+| 18 | `get_worker_run` | Run lookup | `GET` | `/api/v2/worker-runs/{runId}` |
+| 19 | `poll_run` | Run lookup (orchestration) | `GET` | `/api/v2/worker-runs/{runId}/poll` (synthetic) |
+| 20 | `verify_run` | Run lookup (orchestration) | `GET` | `/api/v2/worker-runs/{runId}/verify` (synthetic) |
+| 21 | `get_worker_last_run` | Run lookup | `GET` | `/api/v2/workers/{workerId}/runs/last` |
+| 22 | `list_last_worker_run_results` | Output retrieval | `GET` | `/api/v2/worker-runs/last/result` |
+| 23 | `export_last_worker_run_results` | Output retrieval | `GET` | `/api/v2/worker-runs/last/export` |
+| 24 | `get_last_worker_run_log` | Output retrieval | `GET` | `/api/v2/worker-runs/last/log` |
+| 25 | `list_worker_run_results` | Output retrieval | `GET` | `/api/v2/worker-runs/{runId}/result` |
+| 26 | `export_worker_run_results` | Output retrieval | `GET` | `/api/v2/worker-runs/{runId}/result/export` |
+| 27 | `get_worker_run_log` | Output retrieval | `GET` | `/api/v2/worker-runs/{runId}/log` (`grep` filters in-process) |
+| 28 | `list_worker_last_run_results` | Output retrieval | `GET` | `/api/v2/workers/{workerId}/runs/last/result` |
+| 29 | `export_worker_last_run_results` | Output retrieval | `GET` | `/api/v2/workers/{workerId}/runs/last/export` |
+| 30 | `get_worker_last_run_log` | Output retrieval | `GET` | `/api/v2/workers/{workerId}/runs/last/log` |
+| 31 | `rerun_last_worker_run` | Repeat and control | `POST` | `/api/v2/worker-runs/last/rerun` |
+| 32 | `rerun_worker_run` | Repeat and control | `POST` | `/api/v2/worker-runs/{runId}/rerun` |
+| 33 | `rerun_worker_last_run` | Repeat and control | `POST` | `/api/v2/workers/{workerId}/runs/last/rerun` |
+| 34 | `abort_last_worker_run` | Repeat and control | `POST` | `/api/v2/worker-runs/last/abort` |
+| 35 | `abort_worker_run` | Repeat and control | `POST` | `/api/v2/worker-runs/{runId}/abort` |
+| 36 | `abort_worker_last_run` | Repeat and control | `POST` | `/api/v2/workers/{workerId}/runs/last/abort` |
+| 37 | `delete_worker_task` | Task management | `DELETE` | `/api/v2/worker-tasks/{workerTaskId}` |
 
 ## Selection Notes
 
@@ -64,5 +67,9 @@ The hosted MCP server accepts `api-key`, `X-API-Key`, and `Authorization: Bearer
 - Use private worker tools when the user asks for their own workers.
 - Use worker-specific last-run tools only when a known `worker_id` scopes the request.
 - Use account-level last-run tools only when the user means the current account's latest run.
-- The `/last` tools (`get_last_worker_run`, `get_worker_last_run`, `list_last_worker_run_results`, `export_last_worker_run_results`, `get_last_worker_run_log`, and the worker-level `/last` variants) can briefly return stale state. When you need authoritative status or results, prefer the runId-specific tools (`get_worker_run`, `list_worker_run_results`, `export_worker_run_results`, `get_worker_run_log`) with a saved `run_id`.
+- For authoritative status on a known run, prefer the runId-specific tools (`get_worker_run`, `list_worker_run_results`, `export_worker_run_results`, `get_worker_run_log`) with a saved `run_id`; the `/last` tools are convenience shortcuts for "most recent".
+- `poll_run` waits a single run to terminal state (succeeded/failed/aborted) with a timeout instead of manual `get_worker_run` polling; on success it pre-fetches a result preview.
+- `verify_run` returns a structured verdict (`PASS` / `NO_DATA` / `FAILED` / `ERROR_RECORD` / `RUNNING` / `SUBMIT_FAIL`) — it distinguishes a real payload row from an error/diagnostic row, so a CAPTCHA/403 row is not misjudged as `PASS`.
+- `get_worker_run_log` accepts a `grep` parameter (pipe-separated keywords, case-insensitive) with `context_lines` and `max_matches`; use it to surface `Error|Traceback|403|CAPTCHA` lines without pulling the whole log.
+- `run_workers_batch` runs many workers in one call (max 50 items, `concurrency` 1–10, per-item timeout, optional `verify`) and returns a per-item summary; default `concurrency=1` avoids rate-limit (`13000`).
 - Prefer export tools for file delivery; prefer result-list tools for previews and analysis.

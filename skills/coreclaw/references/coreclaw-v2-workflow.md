@@ -42,9 +42,9 @@ Use this reference when planning a CoreClaw job or explaining the v2 operating m
 2. Inspect `get_worker` when version, README, metadata, or ownership context matters.
 3. Always call `get_worker_input_schema` before `run_worker`.
 4. If the schema asks for a proxy region, call `list_proxy_regions`.
-5. Use `run_worker` for ad-hoc input, or `run_worker_task` for saved task presets.
+5. Use `run_worker` for ad-hoc input, or `run_worker_task` for saved task presets. Use `run_workers_batch` to run many workers in one call with per-item timeout and optional `verify`.
 6. Prefer `is_async: true` for long jobs; save the returned run id.
-7. Poll `get_worker_run` (preferred) until terminal state. `get_last_worker_run` and `get_worker_last_run` can briefly return stale state — if a `/last` result disagrees with expectations, re-check via `get_worker_run(run_id)`.
+7. Poll `get_worker_run` (preferred) or `get_last_worker_run`/`get_worker_last_run` until terminal state. Use `poll_run` to wait to terminal with a timeout, and `verify_run` for a structured verdict instead of inspecting rows.
 8. Preview with result-list tools; export CSV or JSON for large datasets.
 9. Inspect logs when a run fails, stalls, or produces unexpected output.
 10. Use rerun tools only for explicit retry/repeat requests.

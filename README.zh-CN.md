@@ -179,28 +179,29 @@ python scripts/validate_skill.py
 
 ## MCP 能力范围
 
-CoreClaw MCP server 暴露 34 个公开工具，覆盖：
+CoreClaw MCP server 暴露 37 个公开工具，覆盖：
 
 - 发现和预检
 - 已保存 worker task 的 CRUD（创建、查看、更新、更新输入、删除）
 - 直接运行 worker
 - 运行已保存的 worker task
-- 查询和轮询 run
+- 批量运行 worker（`run_workers_batch`）
+- 查询和轮询 run（`poll_run`）、结构化判定（`verify_run`）
 - 预览结果
 - 导出 CSV/JSON
-- 查看日志
+- 查看日志（支持 `grep` 进程内过滤）
 - 重跑
 - 停止运行
 
-Skill 只暴露公开的 34 个 CoreClaw MCP/API v2 操作。完整工具矩阵见 `references/mcp-tools.md`。
+Skill 捆绑公开的 34 个 CoreClaw API v2 操作；MCP server 暴露 37 个工具（34 个与这些操作 1:1 对应，另有 `poll_run`、`verify_run`、`run_workers_batch` 三个编排工具）。完整工具矩阵见 `references/mcp-tools.md`。
 
 ## Agent 工作流
 
 1. 用 `list_store_workers` 查公开 marketplace worker，或用 `list_workers` 查当前用户的 worker。
 2. 在 `run_worker` 前必须调用 `get_worker_input_schema`。
-3. 用 `run_worker` 发送符合 schema 的临时输入，或用 `run_worker_task` 运行已保存任务。
+3. 用 `run_worker` 发送符合 schema 的临时输入，或用 `run_worker_task` 运行已保存任务，或用 `run_workers_batch` 一次运行多个 worker。
 4. 保存返回的运行标识为 `run_id`。
-5. 轮询 run detail 直到终态。
+5. 轮询 run detail 直到终态——`poll_run` 带超时等待，`verify_run` 返回结构化的 `PASS`/`ERROR_RECORD` 判定。
 6. 小结果用 list-result 工具预览，大结果用 export 工具导出。
 7. run 失败或结果异常时先查 run detail，再查日志。
 
@@ -239,7 +240,7 @@ python scripts/validate_skill.py
 预期契约：
 
 - bundled public OpenAPI operations：34
-- 公开 MCP tools：34
+- 公开 MCP tools：37
 - 排除 operations：3
 - skill 文档中不再出现旧 v1 工作流术语
 

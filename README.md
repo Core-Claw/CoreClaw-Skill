@@ -179,28 +179,29 @@ python scripts/validate_skill.py
 
 ## Public MCP Surface
 
-The CoreClaw MCP server exposes 34 public tools covering:
+The CoreClaw MCP server exposes 37 public tools covering:
 
 - discovery and preflight
 - saved worker task CRUD (create, get, update, update input, delete)
 - ad-hoc worker runs
 - saved worker task runs
-- run lookup and polling
+- batch worker runs (`run_workers_batch`)
+- run lookup, polling (`poll_run`), and structured verdicts (`verify_run`)
 - result previews
 - CSV/JSON exports
-- logs
+- logs (with in-process `grep` filtering)
 - reruns
 - abort controls
 
-The skill deliberately exposes only the public 34-operation CoreClaw MCP/API v2 surface. See `references/mcp-tools.md` for the exact tool matrix.
+The skill bundles the public 34-operation CoreClaw API v2 surface; the MCP server exposes 37 tools (34 mapping 1:1 to those operations, plus `poll_run`, `verify_run`, and `run_workers_batch` orchestration tools). See `references/mcp-tools.md` for the exact tool matrix.
 
 ## Agent Workflow
 
 1. Use `list_store_workers` for public marketplace discovery or `list_workers` for user-owned workers.
 2. Use `get_worker_input_schema` before `run_worker`.
-3. Use `run_worker` for ad-hoc schema-aligned input or `run_worker_task` for saved task presets.
+3. Use `run_worker` for ad-hoc schema-aligned input, `run_worker_task` for saved task presets, or `run_workers_batch` to run many workers in one call.
 4. Save the returned run identifier as `run_id`.
-5. Poll run detail until terminal status.
+5. Poll run detail until terminal status — `poll_run` waits with a timeout, `verify_run` returns a structured `PASS`/`ERROR_RECORD` verdict.
 6. Preview results with list-result tools or export large outputs.
 7. Inspect logs when a run fails or produces unexpected output.
 
@@ -239,7 +240,7 @@ If the Codex skill-creator toolchain is installed, its `quick_validate.py` can a
 Expected contract:
 
 - Bundled public OpenAPI operations: 34
-- Public MCP tools: 34
+- Public MCP tools: 37
 - Excluded operations: 3
 - No legacy v1 workflow terms in the skill docs
 

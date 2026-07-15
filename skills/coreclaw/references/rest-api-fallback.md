@@ -53,7 +53,7 @@ The API also supports the legacy `api-key` header and `?token=` query parameter.
 
 ## `/last` Endpoints and Pagination
 
-The `/last` endpoints (`/worker-runs/last`, `/workers/{workerId}/runs/last`, and their `result`/`export`/`log` variants) can briefly return stale state. When you need authoritative status or results, prefer the runId-specific endpoints (`/worker-runs/{runId}`, `/worker-runs/{runId}/result`, `/worker-runs/{runId}/log`).
+The `/last` endpoints (`/worker-runs/last`, `/workers/{workerId}/runs/last`, and their `result`/`export`/`log` variants) are convenience shortcuts for "most recent run". For authoritative status on a known run, prefer the runId-specific endpoints (`/worker-runs/{runId}`, `/worker-runs/{runId}/result`, `/worker-runs/{runId}/log`). The `poll_run`, `verify_run`, and `run_workers_batch` orchestration tools are MCP-layer conveniences with no single REST endpoint — REST callers reproduce them by polling `/worker-runs/{runId}` and inspecting `/result` rows.
 
 List and result endpoints paginate with `offset` (default `0`) and `limit` (default `20`, max `100`). Upstream interprets `(offset, limit)` as 1-based paging rather than a true absolute row offset, so `offset` only equals a real row offset when `offset % limit == 0`. Align `offset` to `limit` multiples (e.g. `0`, `20`, `40`, …) to page deterministically; otherwise a non-aligned `offset` returns the page that contains that row, not the row itself.
 

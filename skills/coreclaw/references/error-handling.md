@@ -51,8 +51,8 @@ There is **no `aborted` value** in the API enum. Do not filter by or expect `abo
 | `13000` or HTTP `429` | Back off and retry later; do not tight-loop polling. |
 | `30001` | Tell the user the account has insufficient balance before starting more runs. |
 | `50001`, `50003`, `60001`, or `70001` | Re-check worker, version, task, or run identifiers. |
-| Failed or stalled run | Fetch run detail first, then logs. Prefer `get_worker_run(run_id)` over `get_last_worker_run`/`get_worker_last_run`, which can briefly return stale state. |
-| Empty or suspicious output | Check run status, result count, logs, and input schema alignment before rerunning. If a `/last` endpoint disagrees with expectations, re-check via the runId-specific endpoint (`get_worker_run` / `list_worker_run_results`). |
+| Failed or stalled run | Fetch run detail first, then logs. `get_worker_run(run_id)` is the authoritative status source; `poll_run` waits to terminal with a timeout. |
+| Empty or suspicious output | Check run status, result count, logs, and input schema alignment before rerunning. Use `verify_run` to distinguish a real payload row (`PASS`) from an error/diagnostic row (`ERROR_RECORD`) without inspecting rows. |
 
 ## Reporting Failures
 

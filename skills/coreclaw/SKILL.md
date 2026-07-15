@@ -24,7 +24,7 @@ Read the relevant reference file only when the task needs more detail than this 
 
 1. Prefer MCP tools over REST. Use REST only when MCP is unavailable or the user asks for raw HTTP.
 2. Use v2 identifiers: `worker_id`, `worker_task_id`, and `run_id`.
-3. Use only the public 34-operation CoreClaw MCP/API v2 surface bundled with this skill.
+3. Use the public CoreClaw API v2 surface bundled with this skill (34 operations). The MCP server exposes 37 tools — 34 map 1:1 to those operations, plus `poll_run`, `verify_run`, and `run_workers_batch` orchestration tools.
 4. Always inspect `get_worker_input_schema` before `run_worker`.
 5. Build `run_worker.input_json` from the live schema. Do not invent field names.
 6. Use `run_worker_task` for saved task presets instead of rebuilding their input.
@@ -51,20 +51,22 @@ Use this default sequence:
 2. Execution:
    - `run_worker` for ad-hoc input.
    - `run_worker_task` for saved task presets.
+   - `run_workers_batch` to run many workers in one call (max 50 items, per-item timeout, optional `verify`); default `concurrency=1` avoids rate-limiting.
 3. Run lookup:
-   - `get_worker_run` for a known `run_id` (preferred — authoritative).
+   - `get_worker_run` for a known `run_id` (preferred).
    - `get_last_worker_run` for account-level latest run.
    - `get_worker_last_run` for latest run scoped to a `worker_id`.
-   - The `/last` tools can briefly return stale state. If a `/last` result disagrees with expectations, re-check via `get_worker_run(run_id)`.
+   - Use `poll_run` to wait a single run to terminal state with a timeout instead of manual polling.
+   - Use `verify_run` to get a structured `PASS`/`NO_DATA`/`FAILED`/`ERROR_RECORD`/`RUNNING` verdict without inspecting result rows.
 4. Output:
    - `list_worker_run_results`, `list_last_worker_run_results`, or `list_worker_last_run_results` for previews.
    - `export_worker_run_results`, `export_last_worker_run_results`, or `export_worker_last_run_results` for downloads.
-   - `get_worker_run_log`, `get_last_worker_run_log`, or `get_worker_last_run_log` for diagnosis.
+   - `get_worker_run_log`, `get_last_worker_run_log`, or `get_worker_last_run_log` for diagnosis; pass `grep` (pipe-separated keywords) to surface `Error`/`Traceback`/`403`/`CAPTCHA` lines without pulling the whole log.
 5. Repeat/control:
    - `rerun_last_worker_run`, `rerun_worker_run`, or `rerun_worker_last_run`.
    - `abort_last_worker_run`, `abort_worker_run`, or `abort_worker_last_run`.
 
-For the exact 34-tool matrix and order, read `references/mcp-tools.md`.
+For the exact 37-tool matrix and order, read `references/mcp-tools.md`.
 
 ## Direct Worker Runs
 

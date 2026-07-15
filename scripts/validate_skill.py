@@ -24,9 +24,12 @@ EXPECTED_TOOL_ORDER = [
     "update_worker_task_input",
     "run_worker",
     "run_worker_task",
+    "run_workers_batch",
     "list_worker_runs",
     "get_last_worker_run",
     "get_worker_run",
+    "poll_run",
+    "verify_run",
     "get_worker_last_run",
     "list_last_worker_run_results",
     "export_last_worker_run_results",
@@ -270,7 +273,7 @@ def main() -> None:
     validate_text(repo)
     print("CoreClaw skill validation passed")
     print("OpenAPI v2 public operations: 34")
-    print("MCP public tools: 34")
+    print("MCP public tools: 37")
 
 
 if __name__ == "__main__":
