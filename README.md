@@ -2,7 +2,16 @@
 
 [English](README.md) | [Simplified Chinese](README.zh-CN.md)
 
+<p align="center">
+  <img src="./assets/readme/hero.svg" width="100%" alt="CoreClaw Agent Skill: an MCP-first, v2-only AI-agent skill for the CoreClaw worker workflow.">
+</p>
+
 This repository packages the CoreClaw OpenAPI v2 worker workflow as an AI-agent skill. It is MCP-first, v2-only, and designed for agents that need to discover workers, inspect schemas, run jobs, poll status, retrieve results, export files, inspect logs, rerun jobs, abort jobs, and check account quota.
+
+<p align="center">
+  <img src="./assets/readme/section-install.svg" width="100%" alt="01 Install in two commands as a Claude Code plugin.">
+</p>
+
 
 ## Contents
 
@@ -250,3 +259,9 @@ Expected contract:
 - "Run this saved CoreClaw task asynchronously, poll until it finishes, then export CSV."
 - "This CoreClaw run failed. Check run detail and logs, then explain the failure with request id evidence."
 - "Rerun the latest CoreClaw worker run and show the new run id."
+
+---
+
+<p align="center">
+  <img src="./assets/readme/signature.svg" width="100%" alt="README made with beautify-github-readme">
+</p>
